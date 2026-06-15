@@ -3,1478 +3,801 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>AI Radio</title>
-
+<title>AI ラジオ</title>
 <style>
-:root{
-  --bg:#0a0a0f;
-  --surface:#13131a;
-  --border:#2a2a3a;
-
-  --accent:#ff4d6d;
-  --accent2:#7b61ff;
-
-  --text:#e8e8f0;
-  --muted:#666680;
-}
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-body{
-  background:var(--bg);
-  color:var(--text);
-
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-
-  min-height:100vh;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-
-  padding:24px 16px;
-}
-
-.header{
-  text-align:center;
-  margin-bottom:24px;
-}
-
-.station-label{
-  font-size:12px;
-  letter-spacing:4px;
-  color:var(--accent);
-  margin-bottom:8px;
-}
-
-h1{
-  font-size:48px;
-  font-weight:900;
-}
-
-h1 span{
-  color:var(--accent);
-}
-
-.tagline{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:13px;
-}
-
-.card{
-  width:100%;
-  max-width:520px;
-
-  background:var(--surface);
-  border:1px solid var(--border);
-
-  border-radius:20px;
-
-  padding:24px;
-  margin-bottom:16px;
-}
-
-.section-label{
-  font-size:11px;
-  letter-spacing:3px;
-  color:var(--muted);
-
-  margin-bottom:10px;
-}
-
-input[type=password]{
-  width:100%;
-  padding:14px;
-
-  background:var(--bg);
-  color:var(--text);
-
-  border:1px solid var(--border);
-  border-radius:12px;
-
-  outline:none;
-}
-
-input[type=password]:focus{
-  border-color:var(--accent2);
-}
-
-.save-row{
-  margin-top:10px;
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-
-.save-row label{
-  color:var(--muted);
-  font-size:12px;
-}
-
-.btn-main{
-  width:100%;
-
-  border:none;
-  border-radius:14px;
-
-  background:var(--accent);
-  color:white;
-
-  padding:18px;
-
-  cursor:pointer;
-  font-weight:700;
-  font-size:18px;
-}
-
-.btn-main:hover{
-  opacity:.9;
-}
-
-.btn-stop{
-  width:100%;
-
-  margin-top:12px;
-
-  background:transparent;
-
-  border:1px solid var(--border);
-
-  color:var(--text);
-
-  border-radius:14px;
-
-  padding:14px;
-
-  cursor:pointer;
-}
-
-.status{
-  margin-top:12px;
-  min-height:18px;
-
-  font-size:12px;
-  color:var(--muted);
-  text-align:center;
-}
-
-.status.error{
-  color:var(--accent);
-}
-
-.now-playing{
-  display:none;
-
-  width:100%;
-  max-width:520px;
-
-  background:var(--surface);
-
-  border:1px solid var(--border);
-  border-radius:20px;
-
-  padding:24px;
-}
-
-.now-playing.visible{
-  display:block;
-}
-
-.mode-badge{
-  display:inline-block;
-
-  padding:5px 12px;
-
-  border-radius:999px;
-
-  font-size:12px;
-  font-weight:700;
-
-  margin-bottom:12px;
-}
-
-.mode-loading{
-  background:rgba(123,97,255,.15);
-  color:var(--accent2);
-}
-
-.mode-talk{
-  background:rgba(255,77,109,.15);
-  color:var(--accent);
-}
-
-.mode-cm{
-  background:rgba(255,215,0,.15);
-  color:#ffd700;
-}
-
-.current-theme{
-  margin-bottom:14px;
-  font-weight:700;
-}
-
-.waveform{
-  display:flex;
-  gap:3px;
-  align-items:center;
-
-  height:32px;
-
-  margin-bottom:14px;
-}
-
-.bar{
-  width:3px;
-
-  background:var(--accent);
-
-  border-radius:3px;
-
-  animation:wave 1s infinite ease-in-out;
-}
-
-.bar:nth-child(1){animation-delay:0s;}
-.bar:nth-child(2){animation-delay:.1s;}
-.bar:nth-child(3){animation-delay:.2s;}
-.bar:nth-child(4){animation-delay:.3s;}
-.bar:nth-child(5){animation-delay:.4s;}
-.bar:nth-child(6){animation-delay:.3s;}
-.bar:nth-child(7){animation-delay:.2s;}
-.bar:nth-child(8){animation-delay:.1s;}
-.bar:nth-child(9){animation-delay:0s;}
-
-@keyframes wave{
-  0%,100%{
-    height:5px;
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700;900&family=Share+Tech+Mono&display=swap');
+  :root {
+    --bg:#0a0a0f;--surface:#13131a;--border:#2a2a3a;
+    --accent:#ff4d6d;--accent2:#7b61ff;--text:#e8e8f0;--muted:#666680;
   }
-
-  50%{
-    height:26px;
-  }
-}
-
-.chat-log{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-
-  max-height:380px;
-  overflow-y:auto;
-}
-
-.chat-bubble{
-  display:flex;
-  gap:10px;
-}
-
-.chat-bubble.right{
-  flex-direction:row-reverse;
-}
-
-.avatar{
-  width:32px;
-  flex-shrink:0;
-  text-align:center;
-  font-size:24px;
-}
-
-.message{
-  max-width:80%;
-}
-
-.name{
-  font-size:11px;
-  margin-bottom:4px;
-}
-
-.chat-bubble.left .name{
-  color:var(--accent);
-}
-
-.chat-bubble.right .name{
-  color:var(--accent2);
-  text-align:right;
-}
-
-.text{
-  border:1px solid var(--border);
-
-  border-radius:12px;
-
-  background:var(--bg);
-
-  padding:10px 12px;
-
-  line-height:1.7;
-}
-
-.text.speaking{
-  background:rgba(255,255,255,.05);
-}
-
-.cm-box{
-  display:none;
-
-  background:rgba(255,215,0,.08);
-
-  border:1px solid rgba(255,215,0,.25);
-
-  border-radius:12px;
-
-  padding:14px;
-
-  color:#ffe066;
-}
-
-.cm-box.visible{
-  display:block;
-}
-
-.bgm{
-  margin-top:12px;
-
-  display:flex;
-  align-items:center;
-  gap:8px;
-
-  color:var(--muted);
-  font-size:12px;
-}
-
-.dot{
-  width:8px;
-  height:8px;
-
-  border-radius:50%;
-
-  background:var(--accent2);
-}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+  .header{text-align:center;margin-bottom:28px}
+  .station-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;
+    color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+  h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-1px}
+  h1 span{color:var(--accent)}
+  .tagline{color:var(--muted);font-size:13px;margin-top:6px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+    padding:24px 20px;width:100%;max-width:480px;margin-bottom:16px}
+  .sl{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;
+    color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+  .ti{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;
+    color:var(--text);font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;
+    padding:12px 14px;outline:none;transition:border-color .2s;-webkit-appearance:none;margin-bottom:16px}
+  .ti:focus{border-color:var(--accent2)}
+  #apiKey{font-family:'Share Tech Mono',monospace;letter-spacing:2px;margin-bottom:0}
+  textarea.ti{resize:none;height:80px;line-height:1.6;margin-bottom:0}
+  .key-saved{display:flex;align-items:center;justify-content:space-between;
+    background:rgba(123,97,255,.1);border:1px solid rgba(123,97,255,.3);
+    border-radius:10px;padding:10px 14px;font-size:13px;color:var(--accent2)}
+  .key-saved button{background:transparent;border:none;color:var(--muted);
+    cursor:pointer;font-size:12px;text-decoration:underline}
+  .divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+  .btn-main{width:100%;border:none;border-radius:14px;color:#fff;cursor:pointer;
+    font-family:'Zen Kaku Gothic New',sans-serif;font-size:18px;font-weight:900;
+    padding:20px;letter-spacing:2px;transition:all .2s;background:var(--accent)}
+  .btn-main:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,77,109,.5)}
+  .btn-main:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .btn-stop{width:100%;background:transparent;border:1px solid var(--border);
+    border-radius:14px;color:var(--muted);cursor:pointer;
+    font-family:'Zen Kaku Gothic New',sans-serif;font-size:15px;font-weight:700;
+    padding:14px;margin-top:10px;transition:all .2s}
+  .btn-stop:hover{border-color:var(--accent);color:var(--accent)}
+  .now-playing{background:var(--surface);border:1px solid var(--border);
+    border-radius:20px;padding:24px 20px;width:100%;max-width:480px;
+    margin-bottom:16px;display:none}
+  .now-playing.visible{display:block}
+  .waveform{display:flex;align-items:center;gap:3px;height:32px;margin-bottom:16px}
+  .bar{width:3px;border-radius:2px;animation:wave 1s ease-in-out infinite;opacity:.3}
+  .bar.active{opacity:1;background:var(--accent)}
+  .bar.cm{background:#ffd700}
+  @keyframes wave{0%,100%{height:4px}50%{height:24px}}
+  .bar:nth-child(1){animation-delay:0s}.bar:nth-child(2){animation-delay:.1s}
+  .bar:nth-child(3){animation-delay:.2s}.bar:nth-child(4){animation-delay:.3s}
+  .bar:nth-child(5){animation-delay:.4s}.bar:nth-child(6){animation-delay:.3s}
+  .bar:nth-child(7){animation-delay:.2s}.bar:nth-child(8){animation-delay:.1s}
+  .bar:nth-child(9){animation-delay:0s}
+  .mode-badge{display:inline-block;border-radius:20px;font-size:12px;font-weight:700;
+    padding:4px 12px;margin-bottom:6px;letter-spacing:1px}
+  .mode-talk{background:rgba(255,77,109,.2);color:var(--accent)}
+  .mode-cm{background:rgba(255,215,0,.2);color:#ffd700}
+  .mode-loading{background:rgba(123,97,255,.2);color:var(--accent2)}
+  .show-name{font-size:13px;color:var(--muted);margin-bottom:10px;font-family:'Share Tech Mono',monospace}
+  .current-theme{font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text)}
+  .loading-indicator{display:none;align-items:center;justify-content:center;gap:10px;
+    margin-bottom:16px;font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--accent2)}
+  .loading-indicator.visible{display:flex}
+  .loading-dots span{width:8px;height:8px;border-radius:50%;background:var(--accent2);
+    display:inline-block;margin:0 3px;animation:dotpulse 1.2s ease-in-out infinite;opacity:.3}
+  .loading-dots span:nth-child(2){animation-delay:.4s}
+  .loading-dots span:nth-child(3){animation-delay:.8s}
+  @keyframes dotpulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+  .letter-box{background:rgba(123,97,255,.07);border:1px solid rgba(123,97,255,.3);
+    border-radius:14px;padding:16px;margin-bottom:16px;display:none}
+  .letter-box.visible{display:block}
+  .letter-title{font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:10px;
+    font-family:'Share Tech Mono',monospace;letter-spacing:2px}
+  .letter-theme{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;
+    padding:10px 12px;background:rgba(123,97,255,.1);border-radius:8px}
+  .letter-sent{text-align:center;color:var(--accent2);font-size:13px;padding:8px 0;display:none}
+  .btn-send{width:100%;border:none;border-radius:10px;color:#fff;cursor:pointer;
+    font-family:'Zen Kaku Gothic New',sans-serif;font-size:14px;font-weight:700;
+    padding:12px;margin-top:8px;transition:all .2s;background:var(--accent2)}
+  .btn-send:hover:not(:disabled){opacity:.85}
+  .btn-send:disabled{opacity:.4;cursor:not-allowed}
+  .bgm-indicator{display:flex;align-items:center;gap:8px;
+    font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);margin-top:12px}
+  .bgm-dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);animation:pulse 1.5s ease-in-out infinite}
+  .bgm-dot.off{background:var(--muted);animation:none;opacity:.3}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+  .status{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);
+    text-align:center;margin-top:10px;min-height:16px}
+  .status.error{color:var(--accent)}
+  .profile-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+    padding:20px;width:100%;max-width:480px;margin-bottom:16px}
+  .profile-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .profile-label{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted)}
+  .profile-value{font-size:14px;font-weight:700;color:var(--text)}
+  .profile-rank{font-size:18px;font-weight:900;color:var(--accent2)}
 </style>
 </head>
-
 <body>
 
 <div class="header">
-  <div class="station-label">📻 ON AIR</div>
+  <div class="station-label">📻 on air</div>
   <h1>AI<span>Radio</span></h1>
-  <div class="tagline">
-    Claudeが作る終わらないラジオ番組
+  <div class="tagline">エンドレスラジオ — 止まるまで流れ続ける</div>
+</div>
+
+<div class="profile-box">
+  <div class="profile-row">
+    <span class="profile-label">🎙️ ラジオネーム</span>
+    <span class="profile-value" id="profileName">匿名リスナー</span>
+  </div>
+  <div class="profile-row">
+    <span class="profile-label">⭐ 称号</span>
+    <span class="profile-rank" id="profileRank">訪問者</span>
+  </div>
+  <div class="profile-row">
+    <span class="profile-label">📬 採用回数</span>
+    <span class="profile-value" id="profileCount">0回</span>
   </div>
 </div>
 
-<div class="card" id="setupCard">
-
-  <div class="section-label">
-    API KEY
+<div class="card">
+  <div class="sl">🔑 API キー</div>
+  <div id="keySavedBanner" class="key-saved" style="display:none">
+    <span>✅ APIキー保存済み</span>
+    <button onclick="clearKey()">削除して再入力</button>
   </div>
-
-  <input
-    type="password"
-    id="apiKey"
-    placeholder="sk-ant-api..."
-  >
-
-  <div class="save-row">
-    <input
-      type="checkbox"
-      id="saveKey"
-      checked
-    >
-
-    <label for="saveKey">
-      この端末に保存
-    </label>
+  <div id="keyInputArea">
+    <input type="password" id="apiKey" class="ti" placeholder="sk-ant-api..." autocomplete="off">
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+      <input type="checkbox" id="saveKey" checked style="width:auto;padding:0;accent-color:var(--accent2)">
+      <label for="saveKey" style="font-size:12px;color:var(--muted);cursor:pointer">このデバイスに保存する</label>
+    </div>
   </div>
-
-  <div style="height:16px"></div>
-
-  <button
-    id="startBtn"
-    class="btn-main"
-    onclick="startRadio()"
-  >
-    ▶ 放送開始
-  </button>
-
-  <div
-    id="status"
-    class="status"
-  ></div>
-
+  <hr class="divider">
+  <div class="sl">🎙️ ラジオネーム</div>
+  <input type="text" id="radioName" class="ti" placeholder="ラジオネームを入力..." maxlength="20" value="匿名リスナー">
+  <button class="btn-main" id="startBtn" onclick="startRadio()">▶ 放送開始</button>
+  <div class="status" id="status"></div>
 </div>
 
-<div
-  id="nowPlaying"
-  class="now-playing"
->
-
+<div class="now-playing" id="nowPlaying">
+  <div class="sl">📡 オンエア中</div>
   <div class="waveform">
-
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-    <div class="bar"></div>
-
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
   </div>
-
-  <div
-    id="modeBadge"
-    class="mode-badge mode-loading"
-  >
-    準備中
+  <div class="mode-badge mode-loading" id="modeBadge">⏳ 準備中</div>
+  <div class="show-name" id="showName"></div>
+  <div class="current-theme" id="currentTheme"></div>
+  <div class="loading-indicator" id="loadingIndicator">
+    <span>台本生成中</span>
+    <div class="loading-dots"><span></span><span></span><span></span></div>
   </div>
-
-  <div
-    id="currentTheme"
-    class="current-theme"
-  ></div>
-
-  <div
-    id="chatLog"
-    class="chat-log"
-  ></div>
-
-  <div
-    id="cmBox"
-    class="cm-box"
-  ></div>
-
-  <div class="bgm">
-    <div class="dot"></div>
-    <span>BGM再生中</span>
+  <div class="letter-box" id="letterBox">
+    <div class="letter-title">📬 テーマへのお便り</div>
+    <div class="letter-theme" id="letterTheme"></div>
+    <textarea id="letterInput" class="ti" placeholder="お便りを送る..."></textarea>
+    <button class="btn-send" id="sendBtn" onclick="sendLetter()">送信する</button>
+    <div class="letter-sent" id="letterSent">✅ お便りを受け付けました！</div>
   </div>
-
-  <button
-    class="btn-stop"
-    onclick="stopRadio()"
-  >
-    ■ 放送終了
-  </button>
-
+  <div class="bgm-indicator">
+    <div class="bgm-dot off" id="bgmDot"></div>
+    <span id="bgmLabel">BGM 停止中</span>
+  </div>
+  <button class="btn-stop" onclick="stopRadio()">■ 放送終了</button>
 </div>
 
 <script>
+const DJS = {
+  a: { name:'ハル',     emoji:'😄', pitch:1.5,  rate:1.1,  desc:'24歳、神奈川出身のカフェ店員（休日はラジオDJ）。テンション高めでポジティブ、天真爛漫。「それ最高じゃないですか」「えーほんとに」が口癖。タメ口気味で語尾が上がる。インスタ映えスポット巡りや韓国ドラマが好き。数字と難しい話と朝が苦手。' },
+  b: { name:'ソラ',     emoji:'🤓', pitch:0.8,  rate:0.9,  desc:'43歳、京都出身のITエンジニア中堅社員（副業でラジオDJ）。冷静で知識豊富、少し皮肉屋。「それは違くて」「実はですね」が口癖。丁寧語ベースでたまに早口、ツッコミが鋭い。読書やプログラミングや将棋が好き。感情論と体育会系ノリが苦手。' },
+  c: { name:'ナナ',     emoji:'😎', pitch:1.9,  rate:1.15, desc:'17歳、大阪出身の高校生（放課後にラジオDJ見習い）。ギャル系で自由奔放、空気を読まない天才。「えぇ〜マジで」「それってバズりそう」「しか勝たん」が口癖。ギャル語混じりでテンションが急に変わり話が脱線しまくる。TikTokやネイルやフェスが好き。ルールと時間を守ることと難しい漢字が苦手。' },
+  d: { name:'ジョージ', emoji:'🧓', pitch:0.6,  rate:0.82, desc:'62歳、大阪出身で定年退職後にラジオDJに転身。昭和気質で頑固だが情に厚く世話焼き。「わしの若い頃はな」「それはアカン」「なんでやねん」が口癖。関西弁でたとえ話が長くてズレてる、若者言葉を間違って使う。競馬や演歌や銭湯や晩酌が好き。スマホとSNSと横文字と若者文化が苦手。なぜか最後は的を射たことを言う。' }
+};
 
-// =========================
-// 状態管理
-// =========================
+// 放送順（同じDJが3回連続しない順番）
+const SCHEDULE = [
+  { key:'ab', keyA:'a', keyB:'b' }, // 大喜利ファイト
+  { key:'cd', keyA:'c', keyB:'d' }, // 世代間ラジオ
+  { key:'ac', keyA:'a', keyB:'c' }, // キラキラFM
+  { key:'bc', keyA:'b', keyB:'c' }, // ギークナイト
+  { key:'ad', keyA:'a', keyB:'d' }, // 朝どれラジオ
+  { key:'bd', keyA:'b', keyB:'d' }, // 男の隠れ家
+];
+
+const SHOWS = {
+  'ab': { name:'大喜利ファイト', genres:['大喜利'], regular:{ name:'大喜利に命をかけるサラリーマン', desc:'毎回本気の大喜利回答を送ってくる常連。ボケの精度が高い。' }, isOgiri:true },
+  'ac': { name:'キラキラFM',     genres:['トレンド','スイーツ','ファッション','韓国文化','SNS'], regular:{ name:'地元のギャルより', desc:'ナナに憧れる中学生。トレンドの報告をしてくる常連。' } },
+  'ad': { name:'朝どれラジオ',   genres:['日常','季節','地元話','人情','食文化'], regular:{ name:'カフェの常連おじさん', desc:'ハルの職場の常連客。毎回注文を報告してくる常連。' } },
+  'bc': { name:'ギークナイト',   genres:['テクノロジー','ゲーム','学校','将来','サブカル'], regular:{ name:'プログラミング勉強中', desc:'文系大学生。ソラに質問を投げかけてくる常連。' } },
+  'bd': { name:'男の隠れ家',     genres:['仕事','お金','スポーツ','昭和文化','趣味'], regular:{ name:'競馬場帰りのサラリーマン', desc:'ジョージと馬の話をしたがる常連。' } },
+  'cd': { name:'世代間ラジオ',   genres:['ジェネレーションギャップ','家族','価値観','流行の変化'], regular:{ name:'ジョージのことが心配なお嫁さん', desc:'ジョージの昭和発言にツッコミを入れてくる常連。' } }
+};
+
+const CM_LIST = [
+  'まいにちごはん。いそがしいまいにちでも、てづくりのあじをたいせつに。まいにちごはんのれいとうしょくひんは、かいかたいっぱつ、おなべにいれるだけ。やさいたっぷり、えいようまんてん。かぞくのえがおがみたくて、きょうもまいにちごはん。ぜんこくのすーぱーでこうひょうはんばいちゅう。',
+  'ぽけっとじむ。すまほひとつで、ぷろのじむとれーなーがいつでもそばに。じぶんのぺーすでたいりょくづくり、むりなくつづけられるめにゅーがまいにちじどうであなたにとどく。いまならいっかげつかんむりょうたいけんちゅう。ぽけっとじむ、あぷりすとあでけんさくを。',
+  'そらたび。にほんのいいところ、もっとしりたくないですか。そらたびなら、こくないりょこうのよやくがすまほひとつでかんたんに。りょかんも、ほてるも、かんこうちけっとも、ぜんぶそらたびにおまかせ。こんしゅうまつのたびも、そらたびでけんさく。',
+  'ねむりや。まいあさすっきりめざめたいあなたへ。ねむりやのすいみんさぽーとさぷりは、しぜんなねむりをうながすせいぶんをこだわりのはいごうでとどけます。のみはじめて3にちで、めざめのちがいをじっかんするひとぞくしゅつ。いまならしょかいこうにゅうはんがく。ねむりや、うぇぶでけんさくを。',
+  'てしごとや。ぜんこくのしょくにんがひとつひとつてでつくった、ほんもののざっかをあなたのもとへ。きかいにはだせないあたたかみと、ながくつかえるたしかなひんしつ。たんじょうびぷれぜんとやじぶんへのごほうびにもぴったり。てしごとや、うぇぶでけんさくを。',
+  'あさつゆかふぇ。あさのいちばんだいじなじかんを、もっとゆたかに。あさつゆかふぇのこーひーは、えりぬきのさんちからとどくとくせんまめをていねいにてばいり。いちにちのはじまりにふさわしい、まろやかなあじわい。あさつゆかふぇ、ぜんこくにぞくぞくおーぷんちゅう。',
+  'からだのみかた。にほんじんのしょくたくにたりないえいようをかがくてきにふんせきして、ひつようなせいぶんだけをぎゅっとひとつに。まいにち1じょうのむだけで、からだのなかからかわっていくじっかんを。からだのみかた、ぜんこくのどらっぐすとあでおもとめください。',
+  'おそとあそび。やまでも、うみでも、まちでも。あうとどあぶらんどのおそとあそびは、ふだんのせいかつをぼうけんにかえるどうぐをとりそろえています。がんじょうで、かるくて、おしゃれ。こどももおとなも、もっとそとにでたくなる。おそとあそび、うぇぶでくわしく。',
+  'きらりびゅーてぃー。まいにちのすきんけあを、もっとかがくてきに。きらりびゅーてぃーのせいひんは、はだほんらいのちからをひきだすせいぶんだけをていねいにはいごう。いちかげつつかいつづけると、かがみをみるのがたのしくなったというこえがたくさん。きらりびゅーてぃー、こうしきさいとでくわしく。',
+  'よみきかせ。でんしゃのなかでも、おふろでも、ねるまえでも。よみきかせなら、すまほひとつでいつでもどこでもどくしょがたのしめます。まんがも、しょうせつも、じっせんしょも、100まんさついじょうがよみほうだい。いまなら1かげつむりょうでおためしいただけます。よみきかせ、あぷりすとあでけんさくを。'
+];
+
+const FAKE_NAMES = [
+  '深夜の常連','車の中から','ながら聴きの主婦','通勤中のサラリーマン',
+  '夜更かし中学生','お風呂で聴いてます','布団の中から失礼します',
+  '毎朝聴いてます','ラジオ大好きおじさん','料理しながら'
+];
+
+const THEME_GENRES = [
+  '食べ物・グルメ','旅行・観光','恋愛・人間関係','スポーツ・健康',
+  '音楽・エンタメ','お金・生活','自然・動物','歴史・文化',
+  '家族・子育て','趣味・ホビー','季節・行事','学校・仕事',
+  'ファッション・美容','乗り物・移動','住まい・インテリア'
+];
+
+
+const INITIAL_MEMORIES = {
+  'ab': [ // 大喜利ファイト（ハル×ソラ）
+    { theme:'もし動物が人間語を喋ったら', episode:'ハルが「うちの近所の猫が毎朝クレームを言いに来る」とボケ、ソラが「猫とかけて月曜の朝と解く、その心はどちらも憂鬱な顔をしている」と返して大盛り上がりだった。', listenerName:'大喜利に命をかけるサラリーマン', listenerText:'犬が喋ったら絶対に残業の愚痴を言う。' },
+    { theme:'こんな自動販売機は嫌だ', episode:'ソラの「お釣りをわざとゆっくり出す自販機」がじわじわ受けて、ハルの「買うたびに一言説教してくる自販機」で爆発した回。', listenerName:'大喜利に命をかけるサラリーマン', listenerText:'選んだ瞬間に「本当にそれでいいんですか」と聞いてくる自販機。' },
+    { theme:'もし重力が半分になったら', episode:'ハルが「通勤電車で全員ふわふわしてる」と言い出し、ソラが「重力とかけて上司の説教と解く、その心はどちらも逃げ場がない」で締めた神回。', listenerName:'大喜利に命をかけるサラリーマン', listenerText:'ラーメンが食べられなくなる。麺がすすれない。' }
+  ],
+  'ac': [ // キラキラFM（ハル×ナナ）
+    { theme:'最近ハマっているスキンケア', episode:'ナナが突然「寝る前に顔にアイスを当てると毛穴が締まる」と言い出してハルが全力で止めた回。リスナーからも心配の声が殺到した。', listenerName:'地元のギャルより', listenerText:'うちのクラスでも流行ってます。でもやったら風邪ひきました。' },
+    { theme:'韓国コスメのおすすめを語る', episode:'ハルとナナが30分間ひたすらパックの話をして「これラジオですよね」とナナ自身がつっこんだ伝説の回。', listenerName:'地元のギャルより', listenerText:'韓国行ったとき10枚入りパックを100枚買って帰りました。しか勝たん。' },
+    { theme:'TikTokで流行ってるダンスを解説', episode:'ナナが口頭でダンスを説明しようとして完全にカオスになった回。ハルが「ラジオでダンス説明は無理」と白旗を上げた。', listenerName:'地元のギャルより', listenerText:'私も踊ってみたけど親に「何してんの」って言われました。' }
+  ],
+  'ad': [ // 朝どれラジオ（ハル×ジョージ）
+    { theme:'近所の名物おじさん・おばさん', episode:'ジョージが自分の地元の話を40分してハルが全然止められなかった回。「わしの若い頃はな」が17回出た。', listenerName:'カフェの常連おじさん', listenerText:'今日もホットコーヒーをいただきました。ハルさん、砂糖2つでお願いします。' },
+    { theme:'朝ごはんにこだわりはあるか', episode:'ジョージの「朝はご飯と味噌汁以外認めない」発言にハルが「え、パンはだめなんですか」と聞いて15分論争になった名エピソード。', listenerName:'カフェの常連おじさん', listenerText:'私も和食派です。ジョージさんと気が合いそうです。' },
+    { theme:'季節の変わり目にやること', episode:'ハルが「衣替えが苦手で毎年11月にTシャツを着てる」と告白し、ジョージに「それはアカン」と本気で怒られた回。', listenerName:'カフェの常連おじさん', listenerText:'衣替えのついでに部屋の掃除もしたら一日終わりました。' }
+  ],
+  'bc': [ // ギークナイト（ソラ×ナナ）
+    { theme:'AIと人間の違いとは何か', episode:'ソラが真剣に語り始めたところにナナが「AIってインスタやるんですか」と聞いて議論が崩壊した回。でもなぜか後半は深い話になった。', listenerName:'プログラミング勉強中', listenerText:'AIに課題を手伝ってもらったら先生にバレました。AIも共犯者です。' },
+    { theme:'ゲームにハマりすぎた経験', episode:'ナナが「3日間スマホゲームしてたら現実と区別がつかなくなった」と言い、ソラが「それは依存症では」と冷静に指摘した回。', listenerName:'プログラミング勉強中', listenerText:'テスト前日に新作ゲームを買うのをやめられません。助けてください。' },
+    { theme:'SNSとの上手な付き合い方', episode:'ソラが「通知をオフにすると生産性が3倍になる」と主張し、ナナが「それはもはや人間じゃない」と反論して聴衆を二分した回。', listenerName:'プログラミング勉強中', listenerText:'SNSをやめようとしたら逆に使う時間が増えました。なぜ。' }
+  ],
+  'bd': [ // 男の隠れ家（ソラ×ジョージ）
+    { theme:'サラリーマンの流儀', episode:'ジョージが「定時で帰ることの何が悪い」と熱弁し、ソラが「現代の働き方改革と完全に一致しています」と援護射撃した珍しく意見が合った回。', listenerName:'競馬場帰りのサラリーマン', listenerText:'今日は3レース的中しました。ジョージさん、馬券の話しましょう。' },
+    { theme:'おじさんが若者文化を学ぶ', episode:'ジョージが「タピオカ」を「玉入り紅茶」と言い続け、ソラが訂正するたびにジョージが「一緒やろ」と言い張った回。', listenerName:'競馬場帰りのサラリーマン', listenerText:'私もタピオカを初めて飲みました。おいしかったですが何がいいのか少しわかりません。' },
+    { theme:'男の料理事情', episode:'ジョージの「カレーとラーメン以外作れない」発言からソラの「休日は4品作る」まで、男の料理格差が浮き彫りになった回。', listenerName:'競馬場帰りのサラリーマン', listenerText:'私の得意料理はカップラーメンです。お湯を入れるタイミングが肝心です。' }
+  ],
+  'cd': [ // 世代間ラジオ（ナナ×ジョージ）
+    { theme:'スマホの使い方世代ギャップ', episode:'ジョージが「わしはスマホの電話しか使わん」と言い、ナナが「電話って実際にかけるんですか」と返して互いに衝撃を受けた回。', listenerName:'ジョージのことが心配なお嫁さん', listenerText:'ジョージさん、LINEのやり方教えてあげてください。スタンプを送ってきたことがないんです。' },
+    { theme:'流行語について語る', episode:'ジョージが昭和の流行語を連発し、ナナが一つも知らなくて、逆にナナのギャル語をジョージが全力でメモしていた微笑ましい回。', listenerName:'ジョージのことが心配なお嫁さん', listenerText:'家でジョージさんが急に「それな」と言い出して驚きました。' },
+    { theme:'若者とおじさんの価値観の違い', episode:'「飲み会は義務か任意か」論争で30分使い、最終的にジョージが「まあ時代が変わったんやな」と折れた感動の回。', listenerName:'ジョージのことが心配なお嫁さん', listenerText:'ジョージさんが最近残業せず帰ってくるようになりました。この番組のおかげですかね。' }
+  ]
+};
+const BGM_PATTERNS = [
+  { notes:[261.6,311.1,369.9,415.3], type:'sine',     interval:1.0, vol:0.03  },
+  { notes:[329.6,392.0,440.0,523.2], type:'triangle', interval:0.7, vol:0.025 },
+  { notes:[220.0,246.9,277.2,329.6], type:'sine',     interval:1.3, vol:0.035 },
+  { notes:[349.2,392.0,440.0,493.8], type:'triangle', interval:0.6, vol:0.025 },
+  { notes:[196.0,220.0,261.6,293.6], type:'sine',     interval:1.1, vol:0.03  }
+];
+
+// 常連制度
+const RANKS = [
+  { min:0,   label:'訪問者' },
+  { min:1,   label:'来客'   },
+  { min:5,   label:'住人'   },
+  { min:10,  label:'常連'   },
+  { min:20,  label:'名物'   },
+  { min:50,  label:'古参'   },
+];
+
+let userProfile = { name:'匿名リスナー', readCount:0 };
+
+function loadProfile() {
+  try {
+    const saved = localStorage.getItem('ai_radio_profile');
+    if (saved) userProfile = JSON.parse(saved);
+  } catch(e) {}
+  updateProfileUI();
+}
+
+function saveProfile() {
+  try { localStorage.setItem('ai_radio_profile', JSON.stringify(userProfile)); } catch(e) {}
+}
+
+function getRank(count) {
+  return [...RANKS].reverse().find(r => count >= r.min)?.label || '訪問者';
+}
+
+function updateProfileUI() {
+  document.getElementById('profileName').textContent = userProfile.name;
+  document.getElementById('profileRank').textContent = getRank(userProfile.readCount);
+  document.getElementById('profileCount').textContent = userProfile.readCount + '回';
+}
+
+function incrementReadCount() {
+  userProfile.readCount++;
+  saveProfile();
+  updateProfileUI();
+}
 
 let isRunning = false;
-
+let usedThemes = [];
+let pendingLetter = null;
+let radioName = '匿名リスナー';
+let scheduleIdx = 0;
+let lastCmIdx = -1;
+let lastBgmIdx = -1;
+let lastGenreIdx = -1;
+const showMemory = {};
+let audioCtx = null;
+let bgmTimer = null;
+let bgmOn = false;
 let synth = window.speechSynthesis;
 let voices = [];
 
-let audioCtx = null;
-
-let bgmTimer = null;
-let bgmEnabled = false;
-
-const DJS = {
-
-  a:{
-    name:"ハル",
-    emoji:"😄",
-    pitch:1.2,
-    rate:1.0,
-    desc:"明るく話を広げる"
-  },
-
-  b:{
-    name:"ソラ",
-    emoji:"🤓",
-    pitch:0.85,
-    rate:0.95,
-    desc:"知識豊富なツッコミ役"
-  },
-
-  c:{
-    name:"ナナ",
-    emoji:"😎",
-    pitch:1.3,
-    rate:1.05,
-    desc:"テンション高めのギャル"
-  },
-
-  d:{
-    name:"ジョージ",
-    emoji:"🧓",
-    pitch:0.75,
-    rate:0.9,
-    desc:"昭和おじさん"
-  }
-
-};
-
-// =========================
-// 音声一覧
-// =========================
-
-function loadVoices(){
-
-  voices = synth
-    .getVoices()
-    .filter(v=>v.lang.startsWith("ja"));
-
-}
-
+function loadVoices() { voices = synth.getVoices().filter(v => v.lang.startsWith('ja')); }
 loadVoices();
+if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
 
-if(speechSynthesis.onvoiceschanged !== undefined){
-
-  speechSynthesis.onvoiceschanged = loadVoices;
-
+function loadKey() {
+  try {
+    if (localStorage.getItem('ai_radio_key')) {
+      document.getElementById('keySavedBanner').style.display = 'flex';
+      document.getElementById('keyInputArea').style.display = 'none';
+    }
+  } catch(e) {}
+}
+function clearKey() {
+  try { localStorage.removeItem('ai_radio_key'); } catch(e) {}
+  document.getElementById('keySavedBanner').style.display = 'none';
+  document.getElementById('keyInputArea').style.display = 'block';
+}
+function getApiKey() {
+  try { const s = localStorage.getItem('ai_radio_key'); if (s) return s; } catch(e) {}
+  return document.getElementById('apiKey').value.trim();
 }
 
-// =========================
-// API KEY
-// =========================
-
-window.addEventListener("load",()=>{
-
-  const saved =
-    localStorage.getItem("ai_radio_key");
-
-  if(saved){
-
-    document.getElementById("apiKey").value =
-      saved;
-
-  }
-
-});
-
-function getApiKey(){
-
-  const key =
-    document.getElementById("apiKey")
-      .value
-      .trim();
-
-  return key;
-
+function pickBgm() {
+  let idx;
+  do { idx = Math.floor(Math.random() * BGM_PATTERNS.length); } while (idx === lastBgmIdx);
+  lastBgmIdx = idx;
+  return BGM_PATTERNS[idx];
 }
 
-function saveApiKey(){
-
-  const key = getApiKey();
-
-  if(!key) return;
-
-  if(
-    document.getElementById("saveKey")
-      .checked
-  ){
-
-    localStorage.setItem(
-      "ai_radio_key",
-      key
-    );
-
+function bgmTick(pattern) {
+  if (!bgmOn || !audioCtx) return;
+  const now = audioCtx.currentTime;
+  for (let i = 0; i < 8; i++) {
+    try {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.frequency.value = pattern.notes[Math.floor(Math.random() * pattern.notes.length)] * (Math.random() > 0.5 ? 1 : 0.5);
+      osc.type = pattern.type;
+      const s = now + i * pattern.interval, d = pattern.interval * 1.6;
+      gain.gain.setValueAtTime(0, s);
+      gain.gain.linearRampToValueAtTime(pattern.vol, s + 0.3);
+      gain.gain.linearRampToValueAtTime(0, s + d);
+      osc.start(s); osc.onended = () => osc.disconnect(); osc.stop(s + d);
+    } catch(e) {}
   }
-
+  bgmTimer = setTimeout(() => bgmTick(pattern), 8 * pattern.interval * 1000 - 300);
 }
 
-// =========================
-// UI
-// =========================
-
-function setStatus(text,error=false){
-
-  const el =
-    document.getElementById("status");
-
-  el.textContent = text;
-
-  if(error){
-    el.className = "status error";
-  }else{
-    el.className = "status";
-  }
-
+function startBGM() {
+  if (bgmOn) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    bgmOn = true; setBgmUI(true); bgmTick(pickBgm());
+  } catch(e) {}
 }
 
-function setMode(mode,theme="",djKeys=[]){
-
-  const badge =
-    document.getElementById("modeBadge");
-
-  const themeEl =
-    document.getElementById("currentTheme");
-
-  if(mode==="loading"){
-
-    badge.className =
-      "mode-badge mode-loading";
-
-    badge.textContent =
-      "⏳ 準備中";
-
-    themeEl.textContent =
-      "AIが台本を生成しています";
-
-  }
-
-  else if(mode==="talk"){
-
-    badge.className =
-      "mode-badge mode-talk";
-
-    const names =
-      djKeys
-      .map(k =>
-        DJS[k].emoji +
-        DJS[k].name
-      )
-      .join(" × ");
-
-    badge.textContent =
-      "🎙 " + names;
-
-    themeEl.textContent =
-      "📌 " + theme;
-
-    document
-      .getElementById("cmBox")
-      .classList
-      .remove("visible");
-
-  }
-
-  else if(mode==="cm"){
-
-    badge.className =
-      "mode-badge mode-cm";
-
-    badge.textContent =
-      "📺 CM";
-
-    themeEl.textContent =
-      "スポンサーCM";
-
-    document
-      .getElementById("cmBox")
-      .classList
-      .add("visible");
-
-  }
-
+function stopBGM() {
+  bgmOn = false; clearTimeout(bgmTimer); bgmTimer = null; setBgmUI(false);
 }
 
-// =========================
-// Claude API
-// =========================
+function setBgmUI(on) {
+  document.getElementById('bgmDot').classList.toggle('off', !on);
+  document.getElementById('bgmLabel').textContent = on ? 'BGM 再生中' : 'BGM 停止中';
+}
 
-async function callClaude(
-  prompt,
-  maxTokens=1000
-){
+function pickCM() {
+  let idx;
+  do { idx = Math.floor(Math.random() * CM_LIST.length); } while (idx === lastCmIdx);
+  lastCmIdx = idx;
+  return CM_LIST[idx];
+}
 
-  const apiKey = getApiKey();
+async function callAPI(prompt, maxTokens) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:maxTokens, messages:[{ role:'user', content:prompt }] })
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'APIエラー'); }
+  return (await res.json()).content[0].text.trim();
+}
 
-  if(!apiKey){
+function getNowContext() {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  const hour = now.getHours();
+  const season = month >= 3 && month <= 5 ? '春' : month >= 6 && month <= 8 ? '夏' : month >= 9 && month <= 11 ? '秋' : '冬';
+  const timeOfDay = hour >= 5 && hour < 10 ? '朝' : hour >= 10 && hour < 17 ? '昼' : hour >= 17 && hour < 21 ? '夕方' : '夜';
+  return `現在は${season}の${timeOfDay}（${hour}時台）`;
+}
 
-    throw new Error(
-      "APIキーを入力してください"
-    );
+function nextSchedule() {
+  const s = SCHEDULE[scheduleIdx % SCHEDULE.length];
+  scheduleIdx++;
+  return { ...s, show: SHOWS[s.key] };
+}
 
+async function fetchTheme(show) {
+  const exclusion = usedThemes.length > 0
+    ? '\n\n【使用済みなので絶対に除外】\n' + usedThemes.map((t, i) => `${i+1}. ${t}`).join('\n') : '';
+  let base;
+  if (show?.isOgiri) {
+    base = 'あなたは大喜利の司会者です。面白い大喜利のお題を1つ考えてください。例：「こんな〇〇は嫌だ」「〇〇が○○だったら」など。お題のみ出力。説明不要。';
+  } else if (show?.genres?.length) {
+    const genre = show.genres[Math.floor(Math.random() * show.genres.length)];
+    base = `あなたはラジオ番組のプロデューサーです。「${genre}」に関連する面白いラジオトークのテーマを1つ考えてください。`;
+  } else {
+    let idx;
+    do { idx = Math.floor(Math.random() * THEME_GENRES.length); } while (idx === lastGenreIdx);
+    lastGenreIdx = idx;
+    base = `あなたはラジオ番組のプロデューサーです。「${THEME_GENRES[idx]}」に関連する面白いラジオトークのテーマを1つ考えてください。`;
+  }
+  const theme = await callAPI(base + (show?.isOgiri ? '' : 'テーマの文章のみ出力（例：○○について）。説明不要。') + exclusion, 100);
+  usedThemes.push(theme);
+  if (usedThemes.length > 10) usedThemes.shift();
+  return theme;
+}
+
+async function decideLetter(theme, keyA, keyB) {
+  const show = SHOWS[[keyA,keyB].sort().join('')];
+  const roll = Math.random();
+
+  // 50%: 自分のお便り（あればテーマ判定）
+  if (pendingLetter && roll < 0.5) {
+    const judge = await callAPI(
+      `以下のお便りはラジオトークのテーマ「${theme}」に関連していますか？「yes」か「no」のみ答えてください。\nお便り：「${pendingLetter}」`, 10
+    ).catch(() => 'no');
+    if (judge.toLowerCase().includes('yes')) {
+      incrementReadCount();
+      return { text: pendingLetter, name: radioName };
+    }
   }
 
-  const response =
-    await fetch(
-      "https://api.anthropic.com/v1/messages",
-      {
-        method:"POST",
-
-        headers:{
-          "content-type":"application/json",
-          "x-api-key":apiKey,
-          "anthropic-version":"2023-06-01",
-
-          "anthropic-dangerous-direct-browser-access":"true"
-        },
-
-        body:JSON.stringify({
-
-          model:
-            "claude-3-5-sonnet-latest",
-
-          max_tokens:maxTokens,
-
-          messages:[
-            {
-              role:"user",
-              content:prompt
-            }
-          ]
-
-        })
-      }
-    );
-
-  const json =
-    await response.json();
-
-  if(!response.ok){
-
-    throw new Error(
-      json?.error?.message ||
-      JSON.stringify(json)
-    );
-
+  // 30%: 常連リスナー（自分のお便りが不採用or未入力の場合も含む）
+  if (roll < 0.8 || !pendingLetter) {
+    const prompt = show?.isOgiri
+      ? `大喜利番組の常連リスナー「${show.regular.name}」（${show.regular.desc}）がお題「${theme}」に対して大喜利の回答を送りました。そのキャラクターらしい面白い回答を1文で作ってください。回答のみ出力。`
+      : `ラジオ番組「${show?.name}」の常連リスナー「${show?.regular.name}」（${show?.regular.desc}）が「${theme}」というテーマに関してお便りを送りました。そのキャラクターらしい1〜2文のお便りを作ってください。お便り文のみ出力。`;
+    const text = await callAPI(prompt, 150).catch(() => null);
+    if (text) return { text, name: show.regular.name };
   }
 
-  return json.content[0].text.trim();
-
+  // 20%: 架空リスナー（必ずお便りを生成）
+  const fakeName = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+  const text = await callAPI(
+    `ラジオ番組のリスナー「${fakeName}」が「${theme}」というテーマにお便りを1〜2文で送りました。自然な話し言葉で。お便りの文章のみ出力。`, 150
+  ).catch(() => {
+    return show?.isOgiri ? 'おもしろいですね' : 'たのしく聴いています';
+  });
+  return { text, name: fakeName };
 }
 
-// =========================
-// DJ抽選
-// =========================
+async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo) {
+  const nowCtx = getNowContext();
+  const mem = showMemory[[keyA,keyB].sort().join('')];
+  const letterSection = letter
+    ? `\n\n【リスナーからのお便り】\nラジオネーム「${letter.name}」さんからのお便りです。トークの途中で自然に読み上げて返答してください。\n「${letter.text}」` : '';
+  const reviewSection = mem ? `
 
-function pickDJs(){
+【前回放送の記録】
+テーマ：${mem.theme}
+前回の内容：${mem.episode}${mem.listenerName ? `
+前回読まれたお便り（${mem.listenerName}さん）：${mem.listenerText}` : ''}
+前回の内容とお便りを自然な流れで紹介してください。` : '';
 
-  const keys =
-    Object.keys(DJS);
+  const instructions = {
+    1: `【パート1：オープニング（約4分）】
+- 番組名「${show.name}」と出演DJを紹介する
+- 時間帯や季節を自然に組み込む
+- ${show.isOgiri ? `大喜利のお題「${theme}」を発表する` : `今日のテーマ「${theme}」をさらっと紹介するだけにとどめる。テーマの深掘りはパート2で行うため、パート1では深く触れない`}
+- リスナーにお便りを募集する${mem ? `\n- 前回の放送内容とお便りを自然な流れで紹介する${reviewSection}` : ''}`,
 
-  const shuffled =
-    [...keys]
-      .sort(
-        ()=>Math.random()-0.5
-      );
+    2: `【パート2：メイントーク（約4分）】
+- ${show.isOgiri ? `お題「${theme}」について以下のスタイルで大喜利を進める：
+  DJ A「${DJS[keyA].name}」：短くキレのある直感的なボケ。意外性とギャップを重視。1文以内。
+  DJ B「${DJS[keyB].name}」：知性を感じる視点のボケ。お題を別の角度から見て「確かにそういう見方もある」と思わせる一言。長くなりすぎず1〜2文以内。
+  「なるほどそういうことですか」「それは困りますね」のような無難な相槌は絶対にしない。
+  聴いた人が思わずつっこみたくなる回答を目指す。
+  テンポよくボケとツッコミを繰り返して盛り上げる。` : `テーマ「${theme}」を深掘りしてトークする`}
+- お便りがあれば自然な流れで紹介する${letterSection}`,
 
-  return [
-    shuffled[0],
-    shuffled[1]
-  ];
-
-}
-
-// =========================
-// テーマ生成
-// =========================
-
-async function fetchTheme(){
-
-  return await callClaude(
-
-`面白いラジオ番組のテーマを1つだけ考えてください。
-
-テーマだけを出力してください。
-説明不要。
-20文字以内。`,
-
-100
-
-  );
-
-}
-
-// =========================
-// CM生成
-// =========================
-
-async function fetchCM(){
-
-  return await callClaude(
-
-`15秒程度の架空ラジオCMを作ってください。
-
-CM本文のみ出力してください。`,
-
-200
-
-  );
-
-}
-
-// =========================
-// 台本生成
-// =========================
-
-async function fetchScript(
-  theme,
-  djKeys
-){
-
-  const djA =
-    DJS[djKeys[0]];
-
-  const djB =
-    DJS[djKeys[1]];
-
-  const raw =
-    await callClaude(
-
-`テーマ:
-${theme}
-
-DJ A:
-${djA.name}
-${djA.desc}
-
-DJ B:
-${djB.name}
-${djB.desc}
-
-ルール:
-
-A:○○
-B:○○
-
-形式で25〜35発言。
-
-余計な説明は禁止。`,
-
-2500
-
-);
-
-  const lines = [];
-
-  raw.split("\n")
-    .forEach(line=>{
-
-      const t =
-        line.trim();
-
-      if(
-        t.startsWith("A:")
-      ){
-
-        lines.push({
-
-          dj:djKeys[0],
-
-          text:t.replace(
-            /^A:\s*/,
-            ""
-          )
-
-        });
-
-      }
-
-      if(
-        t.startsWith("B:")
-      ){
-
-        lines.push({
-
-          dj:djKeys[1],
-
-          text:t.replace(
-            /^B:\s*/,
-            ""
-          )
-
-        });
-
-      }
-
-    });
-
-  if(
-    lines.length < 5
-  ){
-
-    throw new Error(
-      "台本解析失敗"
-    );
-
-  }
-
-  return {
-    theme,
-    djKeys,
-    lines
+    3: `【パート3：まとめ・次回予告（約4分）】
+- 今回の放送を振り返ってまとめる
+- 次の番組「${nextShowInfo}」を予告する
+- 自然な締めの言葉で終わる`
   };
 
-}
+  const raw = await callAPI(
+    `あなたはラジオ番組「${show.name}」の台本作家です。
 
-// =========================
-// BGM
-// =========================
+DJ A「${DJS[keyA].name}」: ${DJS[keyA].desc}
+DJ B「${DJS[keyB].name}」: ${DJS[keyB].desc}
 
-function startBGM(){
+時間帯：${nowCtx}
 
-  if(
-    !audioCtx ||
-    bgmEnabled
-  ) return;
+${instructions[partNum]}
 
-  bgmEnabled = true;
+【共通ルール】
+- 12〜15回のやり取り（約4分分）
+- 各セリフ1〜3文、キャラクターを活かした自然な会話
+- 漢字は一切使わない。すべてひらがなで書くこと（例：「今日」→「きょう」「食べ物」→「たべもの」）
+- AI・DJ・SNS・TVなどのアルファベット略語はそのまま使う
+- 笑・！・？・（笑）などの記号は使わない
+- 必ず最後のセリフは自然な区切りの言葉で終わること
 
-  function play(){
+【出力形式のみ】
+A:セリフ
+B:セリフ
+...`, 3000);
 
-    if(
-      !bgmEnabled
-    ) return;
-
-    const osc =
-      audioCtx
-      .createOscillator();
-
-    const gain =
-      audioCtx
-      .createGain();
-
-    osc.connect(gain);
-
-    gain.connect(
-      audioCtx.destination
-    );
-
-    osc.frequency.value =
-      220 +
-      Math.random()*300;
-
-    gain.gain.value =
-      0.015;
-
-    osc.start();
-
-    osc.stop(
-      audioCtx.currentTime
-      + 0.3
-    );
-
-    bgmTimer =
-      setTimeout(
-        play,
-        400
-      );
-
-  }
-
-  play();
-
-}
-
-function stopBGM(){
-
-  bgmEnabled = false;
-
-  if(bgmTimer){
-
-    clearTimeout(
-      bgmTimer
-    );
-
-    bgmTimer = null;
-
-  }
-
-}
-
-// =========================
-// 読み上げ
-// =========================
-
-function speak(
-  text,
-  djKey
-){
-
-  return new Promise(resolve=>{
-
-    if(!isRunning){
-      resolve();
-      return;
-    }
-
-    const dj =
-      DJS[djKey] ||
-      {
-        pitch:1,
-        rate:1
-      };
-
-    const u =
-      new SpeechSynthesisUtterance(
-        text
-      );
-
-    u.lang = "ja-JP";
-
-    u.pitch =
-      dj.pitch;
-
-    u.rate =
-      dj.rate;
-
-    if(
-      voices.length > 0
-    ){
-
-      u.voice =
-        voices[
-          Math.min(
-            voices.length - 1,
-            Object.keys(DJS)
-              .indexOf(djKey)
-          )
-        ];
-
-    }
-
-    u.onend = resolve;
-    u.onerror = resolve;
-
-    synth.speak(u);
-
+  const lines = [];
+  raw.split('\n').forEach(line => {
+    const t = line.trim();
+    if (t.startsWith('A:')) lines.push({ djKey:keyA, text:t.slice(2).trim() });
+    else if (t.startsWith('B:')) lines.push({ djKey:keyB, text:t.slice(2).trim() });
   });
-
+  return lines;
 }
 
-function wait(ms){
-
-  return new Promise(
-    r=>setTimeout(r,ms)
-  );
-
+function speak(text, djKey) {
+  return new Promise(resolve => {
+    const dj = djKey ? DJS[djKey] : { pitch:1.0, rate:1.0 };
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ja-JP'; u.pitch = dj.pitch; u.rate = dj.rate;
+    if (voices.length > 0) u.voice = voices[0];
+    u.onend = resolve; u.onerror = resolve;
+    synth.speak(u);
+  });
 }
 
-// =========================
-// UI描画
-// =========================
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-function renderChat(
-  lines
-){
-
-  const log =
-    document.getElementById(
-      "chatLog"
-    );
-
-  log.innerHTML = "";
-
-  if(
-    !lines ||
-    lines.length===0
-  ) return;
-
-  const leftDj =
-    lines[0].dj;
-
-  lines.forEach(
-    (line,index)=>{
-
-      const dj =
-        DJS[line.dj];
-
-      const side =
-        line.dj===leftDj
-        ? "left"
-        : "right";
-
-      const div =
-        document.createElement(
-          "div"
-        );
-
-      div.className =
-        "chat-bubble " +
-        side;
-
-      div.innerHTML =
-
-`
-<div class="avatar">
-${dj.emoji}
-</div>
-
-<div class="message">
-
-  <div class="name">
-    ${dj.name}
-  </div>
-
-  <div
-    class="text"
-    id="line-${index}"
-  >
-    ${line.text}
-  </div>
-
-</div>
-`;
-
-      log.appendChild(div);
-
-    });
-
+function showLoading(show) {
+  document.getElementById('loadingIndicator').classList.toggle('visible', show);
 }
 
-function highlightLine(
-  index
-){
+function setStatus(msg, isError) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status' + (isError ? ' error' : '');
+}
 
-  document
-    .querySelectorAll(
-      ".text"
-    )
-    .forEach(
-      el =>
-        el.classList.remove(
-          "speaking"
-        )
-    );
+function showLetterBox(theme) {
+  document.getElementById('letterTheme').textContent = '📌 ' + theme;
+  document.getElementById('letterInput').value = '';
+  document.getElementById('letterInput').disabled = false;
+  document.getElementById('letterSent').style.display = 'none';
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('letterBox').classList.add('visible');
+}
 
-  const target =
-    document.getElementById(
-      `line-${index}`
-    );
+function hideLetterBox() {
+  document.getElementById('letterBox').classList.remove('visible');
+}
 
-  if(target){
+function sendLetter() {
+  const text = document.getElementById('letterInput').value.trim();
+  if (!text || text.length < 5) return;
+  pendingLetter = text;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('letterSent').style.display = 'block';
+}
 
-    target.classList.add(
-      "speaking"
-    );
-
-    target.scrollIntoView({
-      block:"nearest",
-      behavior:"smooth"
-    });
-
+function setMode(mode, data) {
+  const badge = document.getElementById('modeBadge');
+  const bars = [...document.querySelectorAll('.bar')];
+  bars.forEach(b => b.classList.remove('active','cm'));
+  if (mode === 'talk') {
+    badge.textContent = `🎙️ ${DJS[data.keyA].emoji}${DJS[data.keyA].name} × ${DJS[data.keyB].emoji}${DJS[data.keyB].name}`;
+    badge.className = 'mode-badge mode-talk';
+    bars.forEach(b => b.classList.add('active'));
+    document.getElementById('showName').textContent = data.show.name;
+    document.getElementById('currentTheme').textContent = '📌 ' + data.theme;
+  } else if (mode === 'cm') {
+    badge.textContent = '📺 CM中';
+    badge.className = 'mode-badge mode-cm';
+    bars.forEach(b => b.classList.add('active','cm'));
+    document.getElementById('currentTheme').textContent = '次のパートを準備中...';
+  } else {
+    badge.textContent = '⏳ 準備中';
+    badge.className = 'mode-badge mode-loading';
+    document.getElementById('showName').textContent = '';
+    document.getElementById('currentTheme').textContent = 'AIが台本を書いています...';
   }
-
 }
 
-// =========================
-// メインループ
-// =========================
-
-async function radioLoop(){
-
-  setMode(
-    "loading"
-  );
-
-  setStatus(
-    "最初の番組を生成中..."
-  );
-
-  let current;
-
-  try{
-
-    const firstTheme =
-      await fetchTheme();
-
-    const firstDjs =
-      pickDJs();
-
-    current =
-      await fetchScript(
-        firstTheme,
-        firstDjs
-      );
-
+async function speakLines(lines) {
+  for (const line of lines) {
+    if (!isRunning) return;
+    await speak(line.text, line.djKey);
+    await wait(180);
   }
+}
 
-  catch(err){
+async function playCM(keyA, keyB) {
+  stopBGM();
+  setMode('cm', {});
+  const cm1 = pickCM();
+  const cm2 = pickCM();
+  await speak('それではCMです。', keyA);
+  await wait(150);
+  await speak(cm1, null);
+  await wait(300);
+  await speak(cm2, null);
+  await wait(200);
+  await speak('以上CMでした。', keyB);
+  await wait(200);
+}
 
-    setStatus(
-      err.message,
-      true
-    );
-
-    stopRadio();
-
-    return;
-
+async function safeFetch(fn) {
+  try { return await fn(); }
+  catch(e) {
+    try { return await fn(); }
+    catch(e2) { setStatus('エラー: ' + e2.message, true); stopRadio(); throw e2; }
   }
+}
 
-  while(
-    isRunning
-  ){
+async function radioLoop() {
+  setMode('loading', null);
+  document.getElementById('currentTheme').textContent = 'まもなく放送開始...';
+  showLoading(true);
 
-    setMode(
-      "talk",
-      current.theme,
-      current.djKeys
-    );
+  // 読み上げと台本生成を並行
+  let cur = nextSchedule();
+  let curTheme = '';
+  const preparePromise = (async () => {
+    curTheme = await fetchTheme(cur.show);
+    return safeFetch(() => fetchPart(1, cur.show, cur.keyA, cur.keyB, curTheme, null, null));
+  })();
 
-    renderChat(
-      current.lines
-    );
+  await speak('AIラジオへようこそ。ただいま番組を準備中です。しばらくお待ちください。', null);
+  let part1 = await preparePromise;
+  showLoading(false);
 
+  while (isRunning) {
+    // --- パート1 ---
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    startBGM();
+    showLetterBox(curTheme);
+    pendingLetter = null;
+
+    // パート1読み上げ
+    let curLetter = null;
+    await speakLines(part1);
+    if (!isRunning) return;
+    hideLetterBox();
+    pendingLetter = null;
+
+    // CM1（この間にdecideLetter＋パート2を生成）
+    const part2Promise = (async () => {
+      curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB);
+      return fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null);
+    })();
+    await playCM(cur.keyA, cur.keyB);
+    const part2 = await safeFetch(() => part2Promise);
+    if (!isRunning) return;
+    if (!isRunning) return;
+
+    // --- パート2 ---
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
-    const nextProgramPromise =
-      (async()=>{
+    // 次番組を決定
+    const next = nextSchedule();
+    const nextTheme = await fetchTheme(next.show).catch(() => fetchTheme(null));
+    const nextShowInfo = `${next.show.name}（${DJS[next.keyA].name}と${DJS[next.keyB].name}）テーマ：${nextTheme}`;
 
-        const theme =
-          await fetchTheme();
+    // パート2読み上げ中にパート3台本を生成
+    const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo));
 
-        const djs =
-          pickDJs();
+    await speakLines(part2);
+    if (!isRunning) return;
 
-        return await fetchScript(
-          theme,
-          djs
-        );
+    // CM2
+    await playCM(cur.keyA, cur.keyB);
+    if (!isRunning) return;
 
-      })();
+    const part3 = await part3Promise;
 
-    const cmPromise =
-      fetchCM();
+    // --- パート3 ---
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    startBGM();
 
-    // -----------------
-    // 本編
-    // -----------------
+    // パート3読み上げ中に次番組パート1とshowMemoryを並行生成
+    const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null));
+    const memKey = [cur.keyA, cur.keyB].sort().join('');
+    const transcript = [...part1, ...part2, ...part3].map(l => l.text).join('\n');
+    const memPromise = callAPI(
+      `以下はラジオ番組「${cur.show.name}」（テーマ：${curTheme}）の台本です。\n${transcript}\n\nこの放送で話されたエピソードや印象的な話題を2〜3文で要約してください。要約のみ出力。`, 200
+    ).catch(() => null).then(episode => {
+      if (episode) showMemory[memKey] = {
+        theme: curTheme,
+        episode,
+        listenerName: curLetter?.name || null,
+        listenerText: curLetter?.text || null
+      };
+    });
 
-    for(
-      let i=0;
-      i<current.lines.length;
-      i++
-    ){
+    await speakLines(part3);
+    if (!isRunning) return;
+    await memPromise;
 
-      if(
-        !isRunning
-      ) return;
+    // CM3
+    await playCM(cur.keyA, cur.keyB);
+    if (!isRunning) return;
 
-      highlightLine(i);
+    const nextPart1 = await nextPart1Promise;
 
-      await speak(
-        current.lines[i].text,
-        current.lines[i].dj
-      );
-
-      await wait(
-        150
-      );
-
-    }
-
-    // -----------------
-    // CM
-    // -----------------
-
-    stopBGM();
-
-    setMode(
-      "cm"
-    );
-
-    let cmText =
-      "";
-
-    try{
-
-      cmText =
-        await cmPromise;
-
-    }
-
-    catch{
-
-      cmText =
-        "この番組はAI Radioの提供でお送りしています。";
-
-    }
-
-    document
-      .getElementById(
-        "cmBox"
-      )
-      .textContent =
-        cmText;
-
-    await speak(
-      "ここでCMです",
-      current.djKeys[0]
-    );
-
-    await wait(
-      200
-    );
-
-    await speak(
-      cmText,
-      null
-    );
-
-    await wait(
-      500
-    );
-
-    await speak(
-      "番組に戻ります",
-      current.djKeys[1]
-    );
-
-    // -----------------
-    // 次番組
-    // -----------------
-
-    setMode(
-      "loading"
-    );
-
-    setStatus(
-      "次の番組を準備中..."
-    );
-
-    try{
-
-      current =
-        await nextProgramPromise;
-
-    }
-
-    catch(err){
-
-      console.error(
-        err
-      );
-
-      await wait(
-        2000
-      );
-
-      continue;
-
-    }
-
+    // 次番組へ切り替え
+    cur = next;
+    curTheme = nextTheme;
+    part1 = nextPart1;
   }
-
 }
 
-// =========================
-// 開始
-// =========================
-
-async function startRadio(){
-
-  if(
-    isRunning
-  ) return;
-
-  try{
-
-    saveApiKey();
-
-    if(
-      !getApiKey()
-    ){
-
-      setStatus(
-        "APIキーを入力してください",
-        true
-      );
-
-      return;
-
+async function startRadio() {
+  const apiKey = getApiKey();
+  if (!apiKey) { setStatus('APIキーを入力してください', true); return; }
+  try {
+    if (document.getElementById('saveKey')?.checked) {
+      localStorage.setItem('ai_radio_key', apiKey);
+      document.getElementById('keySavedBanner').style.display = 'flex';
+      document.getElementById('keyInputArea').style.display = 'none';
     }
+  } catch(e) {}
+  radioName = document.getElementById('radioName').value.trim() || '匿名リスナー';
+  userProfile.name = radioName;
+  saveProfile();
+  updateProfileUI();
 
-    audioCtx =
-      new (
-        window.AudioContext ||
-        window.webkitAudioContext
-      )();
+  // 起動時にINITIAL_MEMORIESからランダムに選んでshowMemoryを初期化
+  Object.keys(INITIAL_MEMORIES).forEach(key => {
+    const patterns = INITIAL_MEMORIES[key];
+    showMemory[key] = patterns[Math.floor(Math.random() * patterns.length)];
+  });
 
-    if(
-      audioCtx.state ===
-      "suspended"
-    ){
-
-      await audioCtx.resume();
-
-    }
-
-    isRunning = true;
-
-    document
-      .getElementById(
-        "setupCard"
-      )
-      .style.display =
-      "none";
-
-    document
-      .getElementById(
-        "nowPlaying"
-      )
-      .classList.add(
-        "visible"
-      );
-
-    setStatus("");
-
-    radioLoop();
-
-  }
-
-  catch(err){
-
-    console.error(
-      err
-    );
-
-    setStatus(
-      err.message,
-      true
-    );
-
-  }
-
+  isRunning = true;
+  scheduleIdx = 0;
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('nowPlaying').classList.add('visible');
+  await radioLoop();
 }
 
-// =========================
-// 停止
-// =========================
-
-function stopRadio(){
-
+function stopRadio() {
   isRunning = false;
-
-  stopBGM();
-
-  try{
-
-    synth.cancel();
-
-  }catch{}
-
-  document
-    .getElementById(
-      "setupCard"
-    )
-    .style.display =
-    "block";
-
-  document
-    .getElementById(
-      "nowPlaying"
-    )
-    .classList.remove(
-      "visible"
-    );
-
-  setStatus(
-    "停止しました"
-  );
-
+  usedThemes = []; pendingLetter = null; scheduleIdx = 0;
+  Object.keys(showMemory).forEach(k => delete showMemory[k]);
+  synth.cancel(); stopBGM(); showLoading(false); hideLetterBox();
+  if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
+  document.getElementById('nowPlaying').classList.remove('visible');
+  document.getElementById('startBtn').disabled = false;
+  setStatus('放送を終了しました', false);
 }
 
-</script>
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      await navigator.wakeLock.request('screen');
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible')
+          try { await navigator.wakeLock.request('screen'); } catch(e) {}
+      });
+    }
+  } catch(e) {}
+}
 
+loadKey();
+loadProfile();
+requestWakeLock();
+</script>
 </body>
 </html>
