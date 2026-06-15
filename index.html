@@ -184,13 +184,13 @@ const DJS = {
 
 // 放送順（同じDJが3回連続しない順番）
 const SCHEDULE = [
+  { key:'all', keyA:'b', keyB:'b', isAllDJ:true }, // 大喜利ファイト（全員）
   { key:'ab', keyA:'a', keyB:'b' }, // ラジオホリデー
   { key:'cd', keyA:'c', keyB:'d' }, // 世代間ラジオ
   { key:'ac', keyA:'a', keyB:'c' }, // キラキラFM
   { key:'bc', keyA:'b', keyB:'c' }, // ギークナイト
   { key:'ad', keyA:'a', keyB:'d' }, // 朝どれラジオ
   { key:'bd', keyA:'b', keyB:'d' }, // 男の隠れ家
-  { key:'all', keyA:'b', keyB:'b', isAllDJ:true }, // 大喜利ファイト（全員）
 ];
 
 const SHOWS = {
@@ -270,7 +270,6 @@ const BGM_PATTERNS = [
   { notes:[196.0,220.0,261.6,293.6], type:'sine',     interval:1.1, vol:0.03  }
 ];
 
-// 常連制度
 const RANKS = [
   { min:0,   label:'訪問者' },
   { min:1,   label:'来客'   },
@@ -450,7 +449,7 @@ async function fetchTheme(show) {
 }
 
 async function decideLetter(theme, keyA, keyB) {
-  const key = [keyA,keyB].sort().join('');
+  const key = keyA === keyB ? 'all' : [keyA,keyB].sort().join('');
   const show = SHOWS[key] || SHOWS['all'];
   const roll = Math.random();
 
@@ -482,7 +481,7 @@ async function decideLetter(theme, keyA, keyB) {
   return { text, name: fakeName };
 }
 
-async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo, allDJ) {
+async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo, allDJ, p2text) {
   const nowCtx = getNowContext();
   const memKey = allDJ ? 'all' : [keyA,keyB].sort().join('');
   const mem = show.isFirstTime ? null : showMemory[memKey];
@@ -528,7 +527,7 @@ async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo,
 - お便りがあれば自然な流れで紹介する${letterSection}`,
 
     3: `【パート3：まとめ・次回予告（約4分）】
-- 今回の放送を振り返ってまとめる
+- 今回の放送を振り返ってまとめる（以下の本編内容に基づいて）${p2text ? `\n【本編で話した内容】\n${p2text}` : ''}
 - 次の番組「${nextShowInfo}」を予告する
 - 自然な締めの言葉で終わる`
   };
@@ -687,52 +686,59 @@ async function radioLoop() {
   document.getElementById('currentTheme').textContent = 'まもなく放送開始...';
   showLoading(true);
 
-  // 読み上げと台本生成を並行
+  // 起動時：最初の番組と次の番組のテーマを並行生成
   let cur = nextSchedule();
+  let next = nextSchedule();
   let curTheme = '';
-  const preparePromise = (async () => {
-    curTheme = await fetchTheme(cur.show);
+  let nextTheme = '';
+
+  const initPromise = (async () => {
+    [curTheme, nextTheme] = await Promise.all([
+      fetchTheme(cur.show),
+      fetchTheme(next.show)
+    ]);
     return safeFetch(() => fetchPart(1, cur.show, cur.keyA, cur.keyB, curTheme, null, null, cur.isAllDJ));
   })();
 
   await speak('AIラジオへようこそ。ただいま番組を準備中です。しばらくお待ちください。', null);
-  let part1 = await preparePromise;
+  let part1 = await initPromise;
   showLoading(false);
+
+  // 起動時からお便り募集開始（次番組テーマで）
+  showLetterBox(nextTheme, next.show.isOgiri);
+  pendingLetter = null;
 
   while (isRunning) {
     // --- パート1 ---
     setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, isAllDJ: cur.isAllDJ });
     startBGM();
-    // パート1ではお便り募集しない（次回テーマはパート3で募集）
-    pendingLetter = null;
 
-    // パート1読み上げ
+    // パート1読み上げ中にお便り取得＋パート2生成
+    // お便りは「今の番組」のテーマに対して集めたもの（curTheme）
     let curLetter = null;
+    const part2Promise = (async () => {
+      curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB);
+      return safeFetch(() => fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null, cur.isAllDJ));
+    })();
+
     await speakLines(part1);
     if (!isRunning) return;
 
-    // CM1（この間にdecideLetter＋パート2を生成）
-    const part2Promise = (async () => {
-      curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB);
-      return fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null, cur.isAllDJ);
-    })();
+    // CM1
     await playCM(cur.keyA, cur.keyB);
-    const part2 = await safeFetch(() => part2Promise);
     if (!isRunning) return;
+    const part2 = await safeFetch(() => part2Promise);
 
     // --- パート2 ---
     setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, isAllDJ: cur.isAllDJ });
     startBGM();
 
-    // 次番組を決定
-    const next = nextSchedule();
-    const nextTheme = await fetchTheme(next.show).catch(() => fetchTheme(null));
+    // パート2読み上げ中にパート3を生成（パート2全文を渡す）
     const nextShowInfo = next.isAllDJ
       ? `${next.show.name}（ハル・ナナ・ジョージ、司会ソラ）テーマ：${nextTheme}`
       : `${next.show.name}（${DJS[next.keyA].name}と${DJS[next.keyB].name}）テーマ：${nextTheme}`;
-
-    // パート2読み上げ中にパート3台本を生成
-    const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo, cur.isAllDJ));
+    const p2text = part2.map(l => l.text).join('\n');
+    const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo, cur.isAllDJ, p2text));
 
     await speakLines(part2);
     if (!isRunning) return;
@@ -740,7 +746,6 @@ async function radioLoop() {
     // CM2
     await playCM(cur.keyA, cur.keyB);
     if (!isRunning) return;
-
     const part3 = await part3Promise;
 
     // --- パート3 ---
@@ -748,12 +753,9 @@ async function radioLoop() {
     startBGM();
 
     // パート3読み上げ中に次番組パート1とshowMemoryを並行生成
-    // パート3開始時に次回テーマのお便り募集開始
-    showLetterBox(nextTheme, next.show.isOgiri);
-    pendingLetter = null;
-    const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null, next.isAllDJ));
     const memKey = cur.isAllDJ ? 'all' : [cur.keyA, cur.keyB].sort().join('');
-    const transcript = [...part1, ...part2, ...part3].map(l => l.text).join('\n');
+    const transcript = [...part1, ...part2].map(l => l.text).join('\n');
+    const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null, next.isAllDJ));
     const memPromise = cur.show.isOgiri
       ? callAPI(
           `以下は大喜利番組の台本です。\n${transcript}\n\nこの回のMVP回答（最も面白かった一言）を1つだけ選んで、「回答者名：回答」の形式で出力してください。`, 100
@@ -769,18 +771,27 @@ async function radioLoop() {
     await speakLines(part3);
     if (!isRunning) return;
     await memPromise;
-    hideLetterBox();
 
-    // CM3
+    // CM3（お便り締め切り・次々番組テーマ生成）
     await playCM(cur.keyA, cur.keyB);
     if (!isRunning) return;
 
+    // 次番組パート1を待つ
     const nextPart1 = await nextPart1Promise;
+
+    // お便りを閉じて次番組テーマに切り替え
+    hideLetterBox();
 
     // 次番組へ切り替え
     cur = next;
     curTheme = nextTheme;
     part1 = nextPart1;
+
+    // 次の次番組を決定してお便り募集開始
+    next = nextSchedule();
+    nextTheme = await fetchTheme(next.show).catch(() => fetchTheme(null));
+    showLetterBox(nextTheme, next.show.isOgiri);
+    pendingLetter = null;
   }
 }
 
