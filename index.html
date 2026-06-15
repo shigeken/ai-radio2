@@ -161,7 +161,7 @@
     <div class="loading-dots"><span></span><span></span><span></span></div>
   </div>
   <div class="letter-box" id="letterBox">
-    <div class="letter-title">📬 テーマへのお便り</div>
+    <div class="letter-title" id="letterTitle">📬 次の番組へのお便り</div>
     <div class="letter-theme" id="letterTheme"></div>
     <textarea id="letterInput" class="ti" placeholder="お便りを送る..."></textarea>
     <button class="btn-send" id="sendBtn" onclick="sendLetter()">送信する</button>
@@ -184,21 +184,23 @@ const DJS = {
 
 // 放送順（同じDJが3回連続しない順番）
 const SCHEDULE = [
-  { key:'ab', keyA:'a', keyB:'b' }, // 大喜利ファイト
+  { key:'ab', keyA:'a', keyB:'b' }, // ラジオホリデー
   { key:'cd', keyA:'c', keyB:'d' }, // 世代間ラジオ
   { key:'ac', keyA:'a', keyB:'c' }, // キラキラFM
   { key:'bc', keyA:'b', keyB:'c' }, // ギークナイト
   { key:'ad', keyA:'a', keyB:'d' }, // 朝どれラジオ
   { key:'bd', keyA:'b', keyB:'d' }, // 男の隠れ家
+  { key:'all', keyA:'b', keyB:'b', isAllDJ:true }, // 大喜利ファイト（全員）
 ];
 
 const SHOWS = {
-  'ab': { name:'大喜利ファイト', genres:['大喜利'], regular:{ name:'大喜利に命をかけるサラリーマン', desc:'毎回本気の大喜利回答を送ってくる常連。ボケの精度が高い。' }, isOgiri:true },
-  'ac': { name:'キラキラFM',     genres:['トレンド','スイーツ','ファッション','韓国文化','SNS'], regular:{ name:'地元のギャルより', desc:'ナナに憧れる中学生。トレンドの報告をしてくる常連。' } },
-  'ad': { name:'朝どれラジオ',   genres:['日常','季節','地元話','人情','食文化'], regular:{ name:'カフェの常連おじさん', desc:'ハルの職場の常連客。毎回注文を報告してくる常連。' } },
-  'bc': { name:'ギークナイト',   genres:['テクノロジー','ゲーム','学校','将来','サブカル'], regular:{ name:'プログラミング勉強中', desc:'文系大学生。ソラに質問を投げかけてくる常連。' } },
-  'bd': { name:'男の隠れ家',     genres:['仕事','お金','スポーツ','昭和文化','趣味'], regular:{ name:'競馬場帰りのサラリーマン', desc:'ジョージと馬の話をしたがる常連。' } },
-  'cd': { name:'世代間ラジオ',   genres:['ジェネレーションギャップ','家族','価値観','流行の変化'], regular:{ name:'ジョージのことが心配なお嫁さん', desc:'ジョージの昭和発言にツッコミを入れてくる常連。' } }
+  'ab':  { name:'ラジオホリデー', genres:['休日','グルメ','旅行','恋愛','ライフスタイル'], regular:{ name:'布団の中から失礼します', desc:'30代会社員。毎回眠そうなコメントを送ってくる常連。' } },
+  'ac':  { name:'キラキラFM',     genres:['トレンド','スイーツ','ファッション','韓国文化','SNS'], regular:{ name:'地元のギャルより', desc:'ナナに憧れる中学生。トレンドの報告をしてくる常連。' } },
+  'ad':  { name:'朝どれラジオ',   genres:['日常','季節','地元話','人情','食文化'], regular:{ name:'カフェの常連おじさん', desc:'ハルの職場の常連客。毎回注文を報告してくる常連。' } },
+  'bc':  { name:'ギークナイト',   genres:['テクノロジー','ゲーム','学校','将来','サブカル'], regular:{ name:'プログラミング勉強中', desc:'文系大学生。ソラに質問を投げかけてくる常連。' } },
+  'bd':  { name:'男の隠れ家',     genres:['仕事','お金','スポーツ','昭和文化','趣味'], regular:{ name:'競馬場帰りのサラリーマン', desc:'ジョージと馬の話をしたがる常連。' } },
+  'cd':  { name:'世代間ラジオ',   genres:['ジェネレーションギャップ','家族','価値観','流行の変化'], regular:{ name:'ジョージのことが心配なお嫁さん', desc:'ジョージの昭和発言にツッコミを入れてくる常連。' } },
+  'all': { name:'大喜利ファイト', genres:['大喜利'], regular:{ name:'大喜利に命をかけるサラリーマン', desc:'毎回本気の大喜利回答を送ってくる常連。ボケの精度が高い。' }, isOgiri:true, isFirstTime:true }
 };
 
 const CM_LIST = [
@@ -227,12 +229,11 @@ const THEME_GENRES = [
   'ファッション・美容','乗り物・移動','住まい・インテリア'
 ];
 
-
 const INITIAL_MEMORIES = {
-  'ab': [ // 大喜利ファイト（ハル×ソラ）
-    { theme:'もし動物が人間語を喋ったら', episode:'ハルが「うちの近所の猫が毎朝クレームを言いに来る」とボケ、ソラが「猫とかけて月曜の朝と解く、その心はどちらも憂鬱な顔をしている」と返して大盛り上がりだった。', listenerName:'大喜利に命をかけるサラリーマン', listenerText:'犬が喋ったら絶対に残業の愚痴を言う。' },
-    { theme:'こんな自動販売機は嫌だ', episode:'ソラの「お釣りをわざとゆっくり出す自販機」がじわじわ受けて、ハルの「買うたびに一言説教してくる自販機」で爆発した回。', listenerName:'大喜利に命をかけるサラリーマン', listenerText:'選んだ瞬間に「本当にそれでいいんですか」と聞いてくる自販機。' },
-    { theme:'もし重力が半分になったら', episode:'ハルが「通勤電車で全員ふわふわしてる」と言い出し、ソラが「重力とかけて上司の説教と解く、その心はどちらも逃げ場がない」で締めた神回。', listenerName:'大喜利に命をかけるサラリーマン', listenerText:'ラーメンが食べられなくなる。麺がすすれない。' }
+  'ab': [ // ラジオホリデー（ハル×ソラ）
+    { theme:'週末の理想の過ごし方', episode:'ハルが「インスタ映えカフェ巡りを6軒はしご」と言い、ソラが「カフェは2軒が限界では」と冷静に返したが、最終的に二人で行く約束になった微笑ましい回。', listenerName:'布団の中から失礼します', listenerText:'週末は布団から出られません。これが理想です。' },
+    { theme:'旅行のこだわりを語る', episode:'ソラの「宿は口コミ4.5以上しか泊まらない」とハルの「インスタで映えるところなら全部OK」の価値観が真っ向対立した回。', listenerName:'布団の中から失礼します', listenerText:'旅行より家でゴロゴロする方が好きです。移動が疲れます。' },
+    { theme:'最近ハマっているグルメ', episode:'ハルが「韓国チキン専門店が最高」と言い続け、ソラが「チキンは日本の唐揚げで十分では」と対抗。聴いていた人が全員チキンを食べたくなった回。', listenerName:'布団の中から失礼します', listenerText:'深夜にこれを聴いてお腹が空きました。もう寝ます。' }
   ],
   'ac': [ // キラキラFM（ハル×ナナ）
     { theme:'最近ハマっているスキンケア', episode:'ナナが突然「寝る前に顔にアイスを当てると毛穴が締まる」と言い出してハルが全力で止めた回。リスナーからも心配の声が殺到した。', listenerName:'地元のギャルより', listenerText:'うちのクラスでも流行ってます。でもやったら風邪ひきました。' },
@@ -260,6 +261,7 @@ const INITIAL_MEMORIES = {
     { theme:'若者とおじさんの価値観の違い', episode:'「飲み会は義務か任意か」論争で30分使い、最終的にジョージが「まあ時代が変わったんやな」と折れた感動の回。', listenerName:'ジョージのことが心配なお嫁さん', listenerText:'ジョージさんが最近残業せず帰ってくるようになりました。この番組のおかげですかね。' }
   ]
 };
+
 const BGM_PATTERNS = [
   { notes:[261.6,311.1,369.9,415.3], type:'sine',     interval:1.0, vol:0.03  },
   { notes:[329.6,392.0,440.0,523.2], type:'triangle', interval:0.7, vol:0.025 },
@@ -311,7 +313,6 @@ function incrementReadCount() {
 let isRunning = false;
 let usedThemes = [];
 let pendingLetter = null;
-let radioName = '匿名リスナー';
 let scheduleIdx = 0;
 let lastCmIdx = -1;
 let lastBgmIdx = -1;
@@ -426,6 +427,7 @@ function nextSchedule() {
   return { ...s, show: SHOWS[s.key] };
 }
 
+
 async function fetchTheme(show) {
   const exclusion = usedThemes.length > 0
     ? '\n\n【使用済みなので絶対に除外】\n' + usedThemes.map((t, i) => `${i+1}. ${t}`).join('\n') : '';
@@ -448,51 +450,56 @@ async function fetchTheme(show) {
 }
 
 async function decideLetter(theme, keyA, keyB) {
-  const show = SHOWS[[keyA,keyB].sort().join('')];
+  const key = [keyA,keyB].sort().join('');
+  const show = SHOWS[key] || SHOWS['all'];
   const roll = Math.random();
 
-  // 50%: 自分のお便り（あればテーマ判定）
+  // 50%: 自分のお便り
   if (pendingLetter && roll < 0.5) {
     const judge = await callAPI(
       `以下のお便りはラジオトークのテーマ「${theme}」に関連していますか？「yes」か「no」のみ答えてください。\nお便り：「${pendingLetter}」`, 10
     ).catch(() => 'no');
     if (judge.toLowerCase().includes('yes')) {
       incrementReadCount();
-      return { text: pendingLetter, name: radioName };
+      return { text: pendingLetter, name: userProfile.name };
     }
   }
 
-  // 30%: 常連リスナー（自分のお便りが不採用or未入力の場合も含む）
-  if (roll < 0.8 || !pendingLetter) {
-    const prompt = show?.isOgiri
-      ? `大喜利番組の常連リスナー「${show.regular.name}」（${show.regular.desc}）がお題「${theme}」に対して大喜利の回答を送りました。そのキャラクターらしい面白い回答を1文で作ってください。回答のみ出力。`
-      : `ラジオ番組「${show?.name}」の常連リスナー「${show?.regular.name}」（${show?.regular.desc}）が「${theme}」というテーマに関してお便りを送りました。そのキャラクターらしい1〜2文のお便りを作ってください。お便り文のみ出力。`;
+  // 30%: 常連リスナー
+  if (roll < 0.8) {
+    const prompt = show.isOgiri
+      ? `大喜利番組の常連リスナー「${show.regular.name}」（${show.regular.desc}）がお題「${theme}」に対して大喜利の回答を1文で作ってください。回答のみ出力。`
+      : `ラジオ番組「${show.name}」の常連リスナー「${show.regular.name}」（${show.regular.desc}）が「${theme}」というテーマにお便りを1〜2文で送りました。お便り文のみ出力。`;
     const text = await callAPI(prompt, 150).catch(() => null);
     if (text) return { text, name: show.regular.name };
   }
 
-  // 20%: 架空リスナー（必ずお便りを生成）
+  // 20%: 架空リスナー
   const fakeName = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
   const text = await callAPI(
     `ラジオ番組のリスナー「${fakeName}」が「${theme}」というテーマにお便りを1〜2文で送りました。自然な話し言葉で。お便りの文章のみ出力。`, 150
-  ).catch(() => {
-    return show?.isOgiri ? 'おもしろいですね' : 'たのしく聴いています';
-  });
+  ).catch(() => 'たのしく聴いています');
   return { text, name: fakeName };
 }
 
-async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo) {
+async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo, allDJ) {
   const nowCtx = getNowContext();
-  const mem = showMemory[[keyA,keyB].sort().join('')];
+  const memKey = allDJ ? 'all' : [keyA,keyB].sort().join('');
+  const mem = show.isFirstTime ? null : showMemory[memKey];
   const letterSection = letter
     ? `\n\n【リスナーからのお便り】\nラジオネーム「${letter.name}」さんからのお便りです。トークの途中で自然に読み上げて返答してください。\n「${letter.text}」` : '';
-  const reviewSection = mem ? `
+  const reviewSection = mem ? (mem.isMvp ? `
+
+【前回大喜利ファイトの記録】
+お題：${mem.theme}
+前回のMVP回答：${mem.mvp}
+オープニングで「先週のMVP回答」として紹介してください。` : `
 
 【前回放送の記録】
 テーマ：${mem.theme}
 前回の内容：${mem.episode}${mem.listenerName ? `
 前回読まれたお便り（${mem.listenerName}さん）：${mem.listenerText}` : ''}
-前回の内容とお便りを自然な流れで紹介してください。` : '';
+前回の内容とお便りを自然な流れで紹介してください。`) : '';
 
   const instructions = {
     1: `【パート1：オープニング（約4分）】
@@ -501,13 +508,23 @@ async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo)
 - ${show.isOgiri ? `大喜利のお題「${theme}」を発表する` : `今日のテーマ「${theme}」をさらっと紹介するだけにとどめる。テーマの深掘りはパート2で行うため、パート1では深く触れない`}
 - リスナーにお便りを募集する${mem ? `\n- 前回の放送内容とお便りを自然な流れで紹介する${reviewSection}` : ''}`,
 
-    2: `【パート2：メイントーク（約4分）】
-- ${show.isOgiri ? `お題「${theme}」について以下のスタイルで大喜利を進める：
-  DJ A「${DJS[keyA].name}」：短くキレのある直感的なボケ。意外性とギャップを重視。1文以内。
-  DJ B「${DJS[keyB].name}」：知性を感じる視点のボケ。お題を別の角度から見て「確かにそういう見方もある」と思わせる一言。長くなりすぎず1〜2文以内。
-  「なるほどそういうことですか」「それは困りますね」のような無難な相槌は絶対にしない。
-  聴いた人が思わずつっこみたくなる回答を目指す。
-  テンポよくボケとツッコミを繰り返して盛り上げる。` : `テーマ「${theme}」を深掘りしてトークする`}
+    2: show.isOgiri ? `【大喜利コーナー】
+お題：「${theme}」
+
+出演：
+司会「${DJS['b'].name}」= 進行・判定・ツッコミ担当。回答を引き出し、するどくツッコむ。
+回答者「${DJS['a'].name}」= テンション高く直感的な短いボケ。1回答1文以内。
+回答者「${DJS['c'].name}」= ギャル語混じりの予測不能なボケ。1回答1文以内。
+回答者「${DJS['d'].name}」= 昭和感満載のズレたボケ。1回答1文以内。
+
+【絶対ルール】
+- 1ターン＝1ネタ。感想や補足で引き延ばさない
+- 「なるほど」「そうですね」などの相槌禁止
+- 回答者が3〜4回回答したらソラが判定（「今のが今日いちばんですね」など）
+- リスナーのお便りが来たらMVP候補として紹介し、ソラが採点する
+- 最後にソラが今日のMVP回答を1つ選んで発表する${letterSection}` :
+`【パート2：メイントーク（約4分）】
+- テーマ「${theme}」を深掘りしてトークする
 - お便りがあれば自然な流れで紹介する${letterSection}`,
 
     3: `【パート3：まとめ・次回予告（約4分）】
@@ -519,8 +536,11 @@ async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo)
   const raw = await callAPI(
     `あなたはラジオ番組「${show.name}」の台本作家です。
 
-DJ A「${DJS[keyA].name}」: ${DJS[keyA].desc}
-DJ B「${DJS[keyB].name}」: ${DJS[keyB].desc}
+${allDJ ? `司会「${DJS['b'].name}」: ${DJS['b'].desc}
+回答者「${DJS['a'].name}」: ${DJS['a'].desc}
+回答者「${DJS['c'].name}」: ${DJS['c'].desc}
+回答者「${DJS['d'].name}」: ${DJS['d'].desc}` : `DJ A「${DJS[keyA].name}」: ${DJS[keyA].desc}
+DJ B「${DJS[keyB].name}」: ${DJS[keyB].desc}`}
 
 時間帯：${nowCtx}
 
@@ -534,16 +554,29 @@ ${instructions[partNum]}
 - 笑・！・？・（笑）などの記号は使わない
 - 必ず最後のセリフは自然な区切りの言葉で終わること
 
-【出力形式のみ】
+${allDJ ? `【出力形式のみ】
+ソラ:セリフ
+ハル:セリフ
+ナナ:セリフ
+ジョージ:セリフ
+...` : `【出力形式のみ】
 A:セリフ
 B:セリフ
-...`, 3000);
+...`}`, 3000);
 
   const lines = [];
   raw.split('\n').forEach(line => {
     const t = line.trim();
-    if (t.startsWith('A:')) lines.push({ djKey:keyA, text:t.slice(2).trim() });
-    else if (t.startsWith('B:')) lines.push({ djKey:keyB, text:t.slice(2).trim() });
+    if (allDJ) {
+      // 全員参加：司会=ソラ(b)、ハル(A)、ナナ(C)、ジョージ(D)
+      if (t.startsWith('司会:') || t.startsWith('ソラ:')) lines.push({ djKey:'b', text:t.split(':').slice(1).join(':').trim() });
+      else if (t.startsWith('ハル:') || t.startsWith('A:')) lines.push({ djKey:'a', text:t.split(':').slice(1).join(':').trim() });
+      else if (t.startsWith('ナナ:') || t.startsWith('C:')) lines.push({ djKey:'c', text:t.split(':').slice(1).join(':').trim() });
+      else if (t.startsWith('ジョージ:') || t.startsWith('D:')) lines.push({ djKey:'d', text:t.split(':').slice(1).join(':').trim() });
+    } else {
+      if (t.startsWith('A:')) lines.push({ djKey:keyA, text:t.slice(2).trim() });
+      else if (t.startsWith('B:')) lines.push({ djKey:keyB, text:t.slice(2).trim() });
+    }
   });
   return lines;
 }
@@ -571,8 +604,9 @@ function setStatus(msg, isError) {
   el.className = 'status' + (isError ? ' error' : '');
 }
 
-function showLetterBox(theme) {
-  document.getElementById('letterTheme').textContent = '📌 ' + theme;
+function showLetterBox(nextTheme, isOgiri) {
+  document.getElementById('letterTitle').textContent = isOgiri ? '🎯 次回お題への回答' : '📬 次の番組へのお便り';
+  document.getElementById('letterTheme').textContent = '📌 ' + nextTheme;
   document.getElementById('letterInput').value = '';
   document.getElementById('letterInput').disabled = false;
   document.getElementById('letterSent').style.display = 'none';
@@ -597,7 +631,9 @@ function setMode(mode, data) {
   const bars = [...document.querySelectorAll('.bar')];
   bars.forEach(b => b.classList.remove('active','cm'));
   if (mode === 'talk') {
-    badge.textContent = `🎙️ ${DJS[data.keyA].emoji}${DJS[data.keyA].name} × ${DJS[data.keyB].emoji}${DJS[data.keyB].name}`;
+    badge.textContent = data.isAllDJ
+      ? `🎙️ 😄ハル × 😎ナナ × 🧓ジョージ（司会：🤓ソラ）`
+      : `🎙️ ${DJS[data.keyA].emoji}${DJS[data.keyA].name} × ${DJS[data.keyB].emoji}${DJS[data.keyB].name}`;
     badge.className = 'mode-badge mode-talk';
     bars.forEach(b => b.classList.add('active'));
     document.getElementById('showName').textContent = data.show.name;
@@ -656,7 +692,7 @@ async function radioLoop() {
   let curTheme = '';
   const preparePromise = (async () => {
     curTheme = await fetchTheme(cur.show);
-    return safeFetch(() => fetchPart(1, cur.show, cur.keyA, cur.keyB, curTheme, null, null));
+    return safeFetch(() => fetchPart(1, cur.show, cur.keyA, cur.keyB, curTheme, null, null, cur.isAllDJ));
   })();
 
   await speak('AIラジオへようこそ。ただいま番組を準備中です。しばらくお待ちください。', null);
@@ -665,39 +701,38 @@ async function radioLoop() {
 
   while (isRunning) {
     // --- パート1 ---
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, isAllDJ: cur.isAllDJ });
     startBGM();
-    showLetterBox(curTheme);
+    // パート1ではお便り募集しない（次回テーマはパート3で募集）
     pendingLetter = null;
 
     // パート1読み上げ
     let curLetter = null;
     await speakLines(part1);
     if (!isRunning) return;
-    hideLetterBox();
-    pendingLetter = null;
 
     // CM1（この間にdecideLetter＋パート2を生成）
     const part2Promise = (async () => {
       curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB);
-      return fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null);
+      return fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null, cur.isAllDJ);
     })();
     await playCM(cur.keyA, cur.keyB);
     const part2 = await safeFetch(() => part2Promise);
     if (!isRunning) return;
-    if (!isRunning) return;
 
     // --- パート2 ---
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, isAllDJ: cur.isAllDJ });
     startBGM();
 
     // 次番組を決定
     const next = nextSchedule();
     const nextTheme = await fetchTheme(next.show).catch(() => fetchTheme(null));
-    const nextShowInfo = `${next.show.name}（${DJS[next.keyA].name}と${DJS[next.keyB].name}）テーマ：${nextTheme}`;
+    const nextShowInfo = next.isAllDJ
+      ? `${next.show.name}（ハル・ナナ・ジョージ、司会ソラ）テーマ：${nextTheme}`
+      : `${next.show.name}（${DJS[next.keyA].name}と${DJS[next.keyB].name}）テーマ：${nextTheme}`;
 
     // パート2読み上げ中にパート3台本を生成
-    const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo));
+    const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo, cur.isAllDJ));
 
     await speakLines(part2);
     if (!isRunning) return;
@@ -709,27 +744,32 @@ async function radioLoop() {
     const part3 = await part3Promise;
 
     // --- パート3 ---
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, isAllDJ: cur.isAllDJ });
     startBGM();
 
     // パート3読み上げ中に次番組パート1とshowMemoryを並行生成
-    const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null));
-    const memKey = [cur.keyA, cur.keyB].sort().join('');
+    // パート3開始時に次回テーマのお便り募集開始
+    showLetterBox(nextTheme, next.show.isOgiri);
+    pendingLetter = null;
+    const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null, next.isAllDJ));
+    const memKey = cur.isAllDJ ? 'all' : [cur.keyA, cur.keyB].sort().join('');
     const transcript = [...part1, ...part2, ...part3].map(l => l.text).join('\n');
-    const memPromise = callAPI(
-      `以下はラジオ番組「${cur.show.name}」（テーマ：${curTheme}）の台本です。\n${transcript}\n\nこの放送で話されたエピソードや印象的な話題を2〜3文で要約してください。要約のみ出力。`, 200
-    ).catch(() => null).then(episode => {
-      if (episode) showMemory[memKey] = {
-        theme: curTheme,
-        episode,
-        listenerName: curLetter?.name || null,
-        listenerText: curLetter?.text || null
-      };
-    });
+    const memPromise = cur.show.isOgiri
+      ? callAPI(
+          `以下は大喜利番組の台本です。\n${transcript}\n\nこの回のMVP回答（最も面白かった一言）を1つだけ選んで、「回答者名：回答」の形式で出力してください。`, 100
+        ).catch(() => null).then(mvp => {
+          if (mvp) showMemory[memKey] = { isMvp: true, theme: curTheme, mvp, listenerName: curLetter?.name || null, listenerText: curLetter?.text || null };
+        })
+      : callAPI(
+          `以下はラジオ番組「${cur.show.name}」（テーマ：${curTheme}）の台本です。\n${transcript}\n\nこの放送で話されたエピソードや印象的な話題を2〜3文で要約してください。要約のみ出力。`, 200
+        ).catch(() => null).then(episode => {
+          if (episode) showMemory[memKey] = { theme: curTheme, episode, listenerName: curLetter?.name || null, listenerText: curLetter?.text || null };
+        });
 
     await speakLines(part3);
     if (!isRunning) return;
     await memPromise;
+    hideLetterBox();
 
     // CM3
     await playCM(cur.keyA, cur.keyB);
@@ -754,8 +794,7 @@ async function startRadio() {
       document.getElementById('keyInputArea').style.display = 'none';
     }
   } catch(e) {}
-  radioName = document.getElementById('radioName').value.trim() || '匿名リスナー';
-  userProfile.name = radioName;
+  userProfile.name = document.getElementById('radioName').value.trim() || '匿名リスナー';
   saveProfile();
   updateProfileUI();
 
