@@ -110,7 +110,7 @@
   <div class="station-label">📻 on air</div>
   <h1>AI<span>Radio</span></h1>
   <div class="tagline">エンドレスラジオ — 止まるまで流れ続ける</div>
-  <div class="version-tag">v1.6.1 - 2026.06.16</div>
+  <div class="version-tag">v1.7.0 - 2026.06.17</div>
 </div>
 
 <div class="profile-box">
@@ -184,14 +184,13 @@ const DJS = {
   d: { name:'ジョージ', emoji:'🧓', pitch:0.6,  rate:0.82, desc:'62歳、大阪出身で定年退職後にラジオDJに転身。昭和気質で頑固だが情に厚く世話焼き。「わしの若い頃はな」「それはアカン」「なんでやねん」が口癖。関西弁でたとえ話が長くてズレてる、若者言葉を間違って使う。競馬や演歌や銭湯や晩酌が好き。スマホとSNSと横文字と若者文化が苦手。なぜか最後は的を射たことを言う。' }
 };
 
-// 放送順（同じDJが3回連続しない順番）
 const SCHEDULE = [
-  { key:'ab', keyA:'a', keyB:'b' }, // ラジオホリデー
-  { key:'cd', keyA:'c', keyB:'d' }, // 世代間ラジオ
-  { key:'ac', keyA:'a', keyB:'c' }, // キラキラFM
-  { key:'bc', keyA:'b', keyB:'c' }, // ギークナイト
-  { key:'ad', keyA:'a', keyB:'d' }, // 朝どれラジオ
-  { key:'bd', keyA:'b', keyB:'d' }, // 男の隠れ家
+  { key:'ab', keyA:'a', keyB:'b' },
+  { key:'cd', keyA:'c', keyB:'d' },
+  { key:'ac', keyA:'a', keyB:'c' },
+  { key:'bc', keyA:'b', keyB:'c' },
+  { key:'ad', keyA:'a', keyB:'d' },
+  { key:'bd', keyA:'b', keyB:'d' },
 ];
 
 const SHOWS = {
@@ -214,12 +213,6 @@ const CM_LIST = [
   'おそとあそび。やまでも、うみでも、まちでも。あうとどあぶらんどのおそとあそびは、ふだんのせいかつをぼうけんにかえるどうぐをとりそろえています。がんじょうで、かるくて、おしゃれ。こどももおとなも、もっとそとにでたくなる。おそとあそび、うぇぶでくわしく。',
   'きらりびゅーてぃー。まいにちのすきんけあを、もっとかがくてきに。きらりびゅーてぃーのせいひんは、はだほんらいのちからをひきだすせいぶんだけをていねいにはいごう。いちかげつつかいつづけると、かがみをみるのがたのしくなったというこえがたくさん。きらりびゅーてぃー、こうしきさいとでくわしく。',
   'よみきかせ。でんしゃのなかでも、おふろでも、ねるまえでも。よみきかせなら、すまほひとつでいつでもどこでもどくしょがたのしめます。まんがも、しょうせつも、じっせんしょも、100まんさついじょうがよみほうだい。いまなら1かげつむりょうでおためしいただけます。よみきかせ、あぷりすとあでけんさくを。'
-];
-
-const FAKE_NAMES = [
-  '深夜の常連','車の中から','ながら聴きの主婦','通勤中のサラリーマン',
-  '夜更かし中学生','お風呂で聴いてます','布団の中から失礼します',
-  '毎朝聴いてます','ラジオ大好きおじさん','料理しながら'
 ];
 
 const THEME_GENRES = [
@@ -322,6 +315,7 @@ let bgmTimer = null;
 let bgmOn = false;
 let synth = window.speechSynthesis;
 let voices = [];
+let totalApiCost = 0;
 
 function loadVoices() { voices = synth.getVoices().filter(v => v.lang.startsWith('ja')); }
 loadVoices();
@@ -396,8 +390,6 @@ function pickCM() {
   return CM_LIST[idx];
 }
 
-let totalApiCost = 0; // 実測用：概算コスト合計（円）
-
 async function callAPI(prompt, maxTokens, model) {
   model = model || 'claude-sonnet-4-6';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -413,7 +405,6 @@ async function callAPI(prompt, maxTokens, model) {
   if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'APIエラー'); }
   const data = await res.json();
 
-  // 実測：概算コスト計算（Sonnet: $3/$15 per M tokens, Haiku: $1/$5 per M tokens、$1=160円換算）
   const inTok = data.usage?.input_tokens || 0;
   const outTok = data.usage?.output_tokens || 0;
   const rate = model.includes('haiku') ? { in:1, out:5 } : { in:3, out:15 };
@@ -439,51 +430,60 @@ function nextSchedule() {
   return { ...s, show: SHOWS[s.key] };
 }
 
-async function fetchTheme(show) {
+// テーマと常連お便りを同時生成（Haiku1回）
+async function fetchThemeAndRegularLetter(show) {
   const exclusion = usedThemes.length > 0
     ? '\n\n【使用済みなので絶対に除外】\n' + usedThemes.map((t, i) => `${i+1}. ${t}`).join('\n') : '';
-  let base;
+  let genrePrompt;
   if (show?.genres?.length) {
     const genre = show.genres[Math.floor(Math.random() * show.genres.length)];
-    base = `あなたはラジオ番組のプロデューサーです。「${genre}」に関連する面白いラジオトークのテーマを1つ考えてください。`;
+    genrePrompt = `「${genre}」に関連する面白いラジオトークのテーマを1つ考えてください。`;
   } else {
     let idx;
     do { idx = Math.floor(Math.random() * THEME_GENRES.length); } while (idx === lastGenreIdx);
     lastGenreIdx = idx;
-    base = `あなたはラジオ番組のプロデューサーです。「${THEME_GENRES[idx]}」に関連する面白いラジオトークのテーマを1つ考えてください。`;
+    genrePrompt = `「${THEME_GENRES[idx]}」に関連する面白いラジオトークのテーマを1つ考えてください。`;
   }
-  const theme = await callAPI(base + 'テーマの文章のみ出力（例：○○について）。説明不要。' + exclusion, 100, 'claude-haiku-4-5-20251001');
+
+  const regular = show?.regular;
+  const raw = await callAPI(
+    `あなたはラジオ番組のプロデューサーです。${genrePrompt}${exclusion}
+
+さらに、番組「${show?.name}」の常連リスナー「${regular?.name}」（${regular?.desc}）が、そのテーマに対して送ってくるお便りも1文で考えてください。そのキャラクターらしく、少しクセのある・ツッコミたくなる内容にしてください。
+
+【出力形式のみ】
+THEME:テーマの文章（例：○○について）
+LETTER:常連リスナーのお便り文`, 200, 'claude-haiku-4-5-20251001'
+  );
+
+  const themeMatch = raw.match(/THEME:\s*(.+)/);
+  const letterMatch = raw.match(/LETTER:\s*(.+)/);
+  const theme = themeMatch ? themeMatch[1].trim() : raw.split('\n')[0].trim();
+  const regularLetter = letterMatch ? letterMatch[1].trim() : null;
+
   usedThemes.push(theme);
   if (usedThemes.length > 10) usedThemes.shift();
-  return theme;
+
+  return { theme, regularLetter };
 }
 
-async function decideLetter(theme, keyA, keyB) {
+// お便り決定：未入力時は常連100%、入力時はユーザー50%/常連50%
+async function decideLetter(theme, keyA, keyB, regularLetter) {
   const key = [keyA,keyB].sort().join('');
   const show = SHOWS[key];
-  const roll = Math.random();
 
-  if (pendingLetter && roll < 0.5) {
+  if (pendingLetter) {
     const judge = await callAPI(
       `以下のお便りはラジオトークのテーマ「${theme}」に関連していますか？「yes」か「no」のみ答えてください。\nお便り：「${pendingLetter}」`, 10, 'claude-haiku-4-5-20251001'
     ).catch(() => 'no');
-    if (judge.toLowerCase().includes('yes')) {
+    if (judge.toLowerCase().includes('yes') && Math.random() < 0.5) {
       incrementReadCount();
       return { text: pendingLetter, name: userProfile.name };
     }
   }
 
-  if (roll < 0.8) {
-    const prompt = `ラジオ番組「${show.name}」の常連リスナー「${show.regular.name}」（${show.regular.desc}）が「${theme}」というテーマにお便りを1文で送りました。そのキャラクターらしく、少しクセのある・ツッコミたくなる内容にしてください。お便り文のみ出力。`;
-    const text = await callAPI(prompt, 150, 'claude-haiku-4-5-20251001').catch(() => null);
-    if (text) return { text, name: show.regular.name };
-  }
-
-  const fakeName = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
-  const text = await callAPI(
-    `ラジオ番組のリスナー「${fakeName}」が「${theme}」というテーマにお便りを1文で送りました。少し極端な意見や偏見、または思わずツッコみたくなる内容にしてください。自然な話し言葉で。お便りの文章のみ出力。`, 150, 'claude-haiku-4-5-20251001'
-  ).catch(() => 'たのしく聴いています');
-  return { text, name: fakeName };
+  if (regularLetter) return { text: regularLetter, name: show.regular.name };
+  return null;
 }
 
 async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo, p2text) {
@@ -499,6 +499,8 @@ async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo,
 前回の内容：${mem.episode}${mem.listenerName ? `
 前回読まれたお便り（${mem.listenerName}さん）：${mem.listenerText}` : ''}
 前回の内容とお便りを自然な流れで紹介してください。` : '';
+
+  const isPart3 = partNum === 3;
 
   const instructions = {
     1: `【パート1：オープニング（約4分）】
@@ -516,6 +518,18 @@ async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo,
 - 次の番組「${nextShowInfo}」を予告する
 - 自然な締めの言葉で終わる`
   };
+
+  const outputFormat = isPart3
+    ? `【出力形式のみ】
+SCRIPT:
+A:セリフ
+B:セリフ
+...
+MEMORY:この放送で話されたエピソードや印象的な話題を2〜3文で要約したもの`
+    : `【出力形式のみ】
+A:セリフ
+B:セリフ
+...`;
 
   const raw = await callAPI(
     `あなたはラジオ番組「${show.name}」の台本作家です。
@@ -542,18 +556,27 @@ ${instructions[partNum]}
 - 読点（、）や三点リーダー（…）を多用して音声読み上げ時に自然な間が生まれるようにすること
 - お便りが届いたとき、DJのリアクションは共感や軽い驚きなど自然な範囲で構わない。毎回大げさに怒る必要はない
 
-【出力形式のみ】
-A:セリフ
-B:セリフ
-...`, 3000);
+${isPart3 ? '【パート3専用ルール】\nMEMORYは台本中の出来事に基づいた具体的な要約にすること（架空の内容を作らない）\n\n' : ''}${outputFormat}`, isPart3 ? 3200 : 3000);
+
+  let scriptText = raw;
+  let memoryText = null;
+
+  if (isPart3) {
+    const memMatch = raw.match(/MEMORY:\s*([\s\S]+)/);
+    if (memMatch) {
+      memoryText = memMatch[1].trim();
+      scriptText = raw.slice(0, raw.indexOf('MEMORY:')).replace(/SCRIPT:\s*/, '');
+    }
+  }
 
   const lines = [];
-  raw.split('\n').forEach(line => {
+  scriptText.split('\n').forEach(line => {
     const t = line.trim();
     if (t.startsWith('A:')) lines.push({ djKey:keyA, text:t.slice(2).trim() });
     else if (t.startsWith('B:')) lines.push({ djKey:keyB, text:t.slice(2).trim() });
   });
-  return lines;
+
+  return isPart3 ? { lines, memoryText } : lines;
 }
 
 function speak(text, djKey) {
@@ -662,14 +685,16 @@ async function radioLoop() {
 
   let cur = nextSchedule();
   let next = nextSchedule();
-  let curTheme = '';
-  let nextTheme = '';
+  let curTheme = '', curRegularLetter = null;
+  let nextTheme = '', nextRegularLetter = null;
 
   const initPromise = (async () => {
-    [curTheme, nextTheme] = await Promise.all([
-      fetchTheme(cur.show),
-      fetchTheme(next.show)
+    const [curTL, nextTL] = await Promise.all([
+      fetchThemeAndRegularLetter(cur.show),
+      fetchThemeAndRegularLetter(next.show)
     ]);
+    curTheme = curTL.theme; curRegularLetter = curTL.regularLetter;
+    nextTheme = nextTL.theme; nextRegularLetter = nextTL.regularLetter;
     return safeFetch(() => fetchPart(1, cur.show, cur.keyA, cur.keyB, curTheme, null, null));
   })();
 
@@ -686,7 +711,7 @@ async function radioLoop() {
 
     let curLetter = null;
     const part2Promise = (async () => {
-      curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB);
+      curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB, curRegularLetter);
       return safeFetch(() => fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null));
     })();
 
@@ -709,23 +734,25 @@ async function radioLoop() {
 
     await playCM(cur.keyA, cur.keyB);
     if (!isRunning) return;
-    const part3 = await part3Promise;
+    const part3Result = await part3Promise;
 
     setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
     const memKey = [cur.keyA, cur.keyB].sort().join('');
-    const transcript = [...part1, ...part2].map(l => l.text).join('\n');
     const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null));
-    const memPromise = callAPI(
-      `以下はラジオ番組「${cur.show.name}」（テーマ：${curTheme}）の台本です。\n${transcript}\n\nこの放送で話されたエピソードや印象的な話題を2〜3文で要約してください。要約のみ出力。`, 200, 'claude-haiku-4-5-20251001'
-    ).catch(() => null).then(episode => {
-      if (episode) showMemory[memKey] = { theme: curTheme, episode, listenerName: curLetter?.name || null, listenerText: curLetter?.text || null };
-    });
 
-    await speakLines(part3);
+    await speakLines(part3Result.lines);
     if (!isRunning) return;
-    await memPromise;
+
+    if (part3Result.memoryText) {
+      showMemory[memKey] = {
+        theme: curTheme,
+        episode: part3Result.memoryText,
+        listenerName: curLetter?.name || null,
+        listenerText: curLetter?.text || null
+      };
+    }
 
     await playCM(cur.keyA, cur.keyB);
     if (!isRunning) return;
@@ -736,10 +763,13 @@ async function radioLoop() {
 
     cur = next;
     curTheme = nextTheme;
+    curRegularLetter = nextRegularLetter;
     part1 = nextPart1;
 
     next = nextSchedule();
-    nextTheme = await fetchTheme(next.show).catch(() => fetchTheme(null));
+    const nextTL = await fetchThemeAndRegularLetter(next.show).catch(() => fetchThemeAndRegularLetter(null));
+    nextTheme = nextTL.theme;
+    nextRegularLetter = nextTL.regularLetter;
     showLetterBox(nextTheme);
     pendingLetter = null;
   }
