@@ -19,6 +19,7 @@
   h1{font-size:clamp(32px,8vw,52px);font-weight:900;letter-spacing:-1px}
   h1 span{color:var(--accent)}
   .tagline{color:var(--muted);font-size:13px;margin-top:6px}
+  .version-tag{color:var(--muted);font-size:10px;margin-top:8px;font-family:'Share Tech Mono',monospace;opacity:.5}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;
     padding:24px 20px;width:100%;max-width:480px;margin-bottom:16px}
   .sl{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;
@@ -109,6 +110,7 @@
   <div class="station-label">📻 on air</div>
   <h1>AI<span>Radio</span></h1>
   <div class="tagline">エンドレスラジオ — 止まるまで流れ続ける</div>
+  <div class="version-tag">v1.6.0 - 2026.06.16</div>
 </div>
 
 <div class="profile-box">
@@ -673,7 +675,7 @@ async function radioLoop() {
 
   while (isRunning) {
     // --- パート1 ---
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme});
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
     // パート1読み上げ中にお便り取得＋パート2生成
@@ -693,7 +695,7 @@ async function radioLoop() {
     const part2 = await safeFetch(() => part2Promise);
 
     // --- パート2 ---
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme});
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
     // パート2読み上げ中にパート3を生成（パート2全文を渡す）
@@ -710,7 +712,7 @@ async function radioLoop() {
     const part3 = await part3Promise;
 
     // --- パート3 ---
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme});
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
     // パート3読み上げ中に次番組パート1とshowMemoryを並行生成
