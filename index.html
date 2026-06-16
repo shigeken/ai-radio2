@@ -110,7 +110,7 @@
   <div class="station-label">📻 on air</div>
   <h1>AI<span>Radio</span></h1>
   <div class="tagline">エンドレスラジオ — 止まるまで流れ続ける</div>
-  <div class="version-tag">v1.7.0 - 2026.06.17</div>
+  <div class="version-tag">v1.8.0 - 2026.06.17</div>
 </div>
 
 <div class="profile-box">
@@ -178,10 +178,10 @@
 
 <script>
 const DJS = {
-  a: { name:'ハル',     emoji:'😄', pitch:1.5,  rate:1.1,  desc:'24歳、神奈川出身のカフェ店員（休日はラジオDJ）。テンション高めでポジティブ、天真爛漫。「それ最高じゃないですか」「えーほんとに」が口癖。タメ口気味で語尾が上がる。インスタ映えスポット巡りや韓国ドラマが好き。数字と難しい話と朝が苦手。' },
-  b: { name:'ソラ',     emoji:'🤓', pitch:0.8,  rate:0.9,  desc:'43歳、京都出身のITエンジニア中堅社員（副業でラジオDJ）。冷静で知識豊富、少し皮肉屋。「それは違くて」「実はですね」が口癖。丁寧語ベースでたまに早口、ツッコミが鋭い。読書やプログラミングや将棋が好き。感情論と体育会系ノリが苦手。' },
-  c: { name:'ナナ',     emoji:'😎', pitch:1.9,  rate:1.15, desc:'17歳、大阪出身の高校生（放課後にラジオDJ見習い）。ギャル系で自由奔放、空気を読まない天才。「えぇ〜マジで」「それってバズりそう」「しか勝たん」が口癖。ギャル語混じりでテンションが急に変わり話が脱線しまくる。TikTokやネイルやフェスが好き。ルールと時間を守ることと難しい漢字が苦手。' },
-  d: { name:'ジョージ', emoji:'🧓', pitch:0.6,  rate:0.82, desc:'62歳、大阪出身で定年退職後にラジオDJに転身。昭和気質で頑固だが情に厚く世話焼き。「わしの若い頃はな」「それはアカン」「なんでやねん」が口癖。関西弁でたとえ話が長くてズレてる、若者言葉を間違って使う。競馬や演歌や銭湯や晩酌が好き。スマホとSNSと横文字と若者文化が苦手。なぜか最後は的を射たことを言う。' }
+  a: { name:'ハル',     emoji:'😄', pitch:1.5,  rate:1.1,  desc:'24歳、神奈川出身のカフェ店員（休日はラジオDJ）。テンション高めでポジティブ、天真爛漫。「それ最高じゃないですか」「えーほんとに」が口癖。タメ口気味で語尾が上がる。インスタ映えスポット巡りや韓国ドラマが好き。', trigger:'数字や統計の話題が出ると理解を諦めて全力で話を脱線させる' },
+  b: { name:'ソラ',     emoji:'🤓', pitch:0.8,  rate:0.9,  desc:'43歳、京都出身のITエンジニア中堅社員（副業でラジオDJ）。冷静で知識豊富、少し皮肉屋。「それは違くて」「実はですね」が口癖。丁寧語ベースでたまに早口、ツッコミが鋭い。読書やプログラミングや将棋が好き。', trigger:'相手の発言に明らかな間違いがあると訂正せずにいられない' },
+  c: { name:'ナナ',     emoji:'😎', pitch:1.9,  rate:1.15, desc:'17歳、大阪出身の高校生（放課後にラジオDJ見習い）。ギャル系で自由奔放、空気を読まない天才。「えぇ〜マジで」「それってバズりそう」「しか勝たん」が口癖。ギャル語混じりでテンションが急に変わり話が脱線しまくる。TikTokやネイルやフェスが好き。', trigger:'SNSや流行の話題になると会話を乗っ取って自分の話を続ける' },
+  d: { name:'ジョージ', emoji:'🧓', pitch:0.6,  rate:0.82, desc:'62歳、大阪出身で定年退職後にラジオDJに転身。昭和気質で頑固だが情に厚く世話焼き。「わしの若い頃はな」「それはアカン」「なんでやねん」が口癖。関西弁でたとえ話が長くてズレてる、若者言葉を間違って使う。競馬や演歌や銭湯や晩酌が好き。', trigger:'若者文化の話題になると昭和時代のエピソードを語り始めて止まらない' }
 };
 
 const SCHEDULE = [
@@ -430,6 +430,39 @@ function nextSchedule() {
   return { ...s, show: SHOWS[s.key] };
 }
 
+// 神回モード抽選（排他選択）
+const MODE_LABELS = {
+  normal: null,
+  winner: '🎲 勝敗回',
+  letterHijack: '🎲 お便り回',
+  noConclusion: '🎲 まとまらない回',
+  awkwardMoment: '🎲 ズレ回'
+};
+
+function pickEpisodeMode() {
+  const roll = Math.random();
+  if (roll < 0.70) return 'normal';
+  if (roll < 0.82) return 'winner';
+  if (roll < 0.92) return 'letterHijack';
+  if (roll < 0.97) return 'noConclusion';
+  return 'awkwardMoment';
+}
+
+function getModeInstruction(mode) {
+  switch (mode) {
+    case 'winner':
+      return '\n\n【今回限りの特別演出：勝敗回】\nどちらか一方が最後まで自分の考えを曲げない。もう一方は途中から反論をやめて呆れる、または「もういいです」と諦める。誰かが押し切る・誰かが折れる、はっきりした勝敗をつけること。';
+    case 'letterHijack':
+      return '\n\n【今回限りの特別演出：お便り回】\nリスナーのお便りに対してDJの片方が異常に食いつき、当初のテーマから話が逸れて、お便りの話題だけで会話の大半を使ってしまう展開にすること。';
+    case 'noConclusion':
+      return '\n\n【今回限りの特別演出：まとまらない回】\n話を綺麗にまとめようとせず、結局結論が出ないまま「まあまた今度考えよう」のような形で終わること。';
+    case 'awkwardMoment':
+      return '\n\n【今回限りの特別演出：ズレ回】\n片方の発言に対してもう片方が本気で驚き、ズレた反応や全く想定外の返しをすることで、笑いになるすれ違いを生むこと。不快にならない範囲で、呆れるくらいのズレを演出すること。';
+    default:
+      return '';
+  }
+}
+
 // テーマと常連お便りを同時生成（Haiku1回）
 async function fetchThemeAndRegularLetter(show) {
   const exclusion = usedThemes.length > 0
@@ -486,7 +519,7 @@ async function decideLetter(theme, keyA, keyB, regularLetter) {
   return null;
 }
 
-async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo, p2text) {
+async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo, p2text, mode) {
   const nowCtx = getNowContext();
   const memKey = [keyA,keyB].sort().join('');
   const mem = showMemory[memKey];
@@ -501,6 +534,7 @@ async function fetchPart(partNum, show, keyA, keyB, theme, letter, nextShowInfo,
 前回の内容とお便りを自然な流れで紹介してください。` : '';
 
   const isPart3 = partNum === 3;
+  const modeInstruction = (mode && mode !== 'normal') ? getModeInstruction(mode) : '';
 
   const instructions = {
     1: `【パート1：オープニング（約4分）】
@@ -535,11 +569,14 @@ B:セリフ
     `あなたはラジオ番組「${show.name}」の台本作家です。
 
 DJ A「${DJS[keyA].name}」: ${DJS[keyA].desc}
+【暴走条件】${DJS[keyA].trigger}
+
 DJ B「${DJS[keyB].name}」: ${DJS[keyB].desc}
+【暴走条件】${DJS[keyB].trigger}
 
 時間帯：${nowCtx}
 
-${instructions[partNum]}
+${instructions[partNum]}${modeInstruction}
 
 【共通ルール】
 - 12〜15回のやり取り（約4分分）
@@ -629,10 +666,11 @@ function setMode(mode, data) {
   const bars = [...document.querySelectorAll('.bar')];
   bars.forEach(b => b.classList.remove('active','cm'));
   if (mode === 'talk') {
+    const modeLabel = data.episodeMode ? MODE_LABELS[data.episodeMode] : null;
     badge.textContent = `🎙️ ${DJS[data.keyA].emoji}${DJS[data.keyA].name} × ${DJS[data.keyB].emoji}${DJS[data.keyB].name}`;
     badge.className = 'mode-badge mode-talk';
     bars.forEach(b => b.classList.add('active'));
-    document.getElementById('showName').textContent = data.show.name;
+    document.getElementById('showName').textContent = data.show.name + (modeLabel ? `　${modeLabel}` : '');
     document.getElementById('currentTheme').textContent = '📌 ' + data.theme;
   } else if (mode === 'cm') {
     badge.textContent = '📺 CM中';
@@ -706,13 +744,15 @@ async function radioLoop() {
   pendingLetter = null;
 
   while (isRunning) {
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    const episodeMode = pickEpisodeMode();
+
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, episodeMode });
     startBGM();
 
     let curLetter = null;
     const part2Promise = (async () => {
       curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB, curRegularLetter);
-      return safeFetch(() => fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null));
+      return safeFetch(() => fetchPart(2, cur.show, cur.keyA, cur.keyB, curTheme, curLetter, null, null, episodeMode));
     })();
 
     await speakLines(part1);
@@ -722,12 +762,12 @@ async function radioLoop() {
     if (!isRunning) return;
     const part2 = await safeFetch(() => part2Promise);
 
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, episodeMode });
     startBGM();
 
     const nextShowInfo = `${next.show.name}（${DJS[next.keyA].name}と${DJS[next.keyB].name}）テーマ：${nextTheme}`;
     const p2text = part2.map(l => l.text).join('\n');
-    const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo, p2text));
+    const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo, p2text, episodeMode));
 
     await speakLines(part2);
     if (!isRunning) return;
@@ -736,7 +776,7 @@ async function radioLoop() {
     if (!isRunning) return;
     const part3Result = await part3Promise;
 
-    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
+    setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme, episodeMode });
     startBGM();
 
     const memKey = [cur.keyA, cur.keyB].sort().join('');
