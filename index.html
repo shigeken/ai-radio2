@@ -396,7 +396,10 @@ function pickCM() {
   return CM_LIST[idx];
 }
 
-async function callAPI(prompt, maxTokens) {
+let totalApiCost = 0; // 実測用：概算コスト合計（円）
+
+async function callAPI(prompt, maxTokens, model) {
+  model = model || 'claude-sonnet-4-6';
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -405,10 +408,20 @@ async function callAPI(prompt, maxTokens) {
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
-    body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:maxTokens, messages:[{ role:'user', content:prompt }] })
+    body: JSON.stringify({ model, max_tokens:maxTokens, messages:[{ role:'user', content:prompt }] })
   });
   if (!res.ok) { const e = await res.json(); throw new Error(e.error?.message || 'APIエラー'); }
-  return (await res.json()).content[0].text.trim();
+  const data = await res.json();
+
+  // 実測：概算コスト計算（Sonnet: $3/$15 per M tokens, Haiku: $1/$5 per M tokens、$1=160円換算）
+  const inTok = data.usage?.input_tokens || 0;
+  const outTok = data.usage?.output_tokens || 0;
+  const rate = model.includes('haiku') ? { in:1, out:5 } : { in:3, out:15 };
+  const costJPY = (inTok * rate.in / 1000000 + outTok * rate.out / 1000000) * 160;
+  totalApiCost += costJPY;
+  console.log(`[${model.includes('haiku') ? 'Haiku' : 'Sonnet'}] in:${inTok} out:${outTok} cost:¥${costJPY.toFixed(2)} (累計:¥${totalApiCost.toFixed(1)})`);
+
+  return data.content[0].text.trim();
 }
 
 function getNowContext() {
@@ -439,7 +452,7 @@ async function fetchTheme(show) {
     lastGenreIdx = idx;
     base = `あなたはラジオ番組のプロデューサーです。「${THEME_GENRES[idx]}」に関連する面白いラジオトークのテーマを1つ考えてください。`;
   }
-  const theme = await callAPI(base + 'テーマの文章のみ出力（例：○○について）。説明不要。' + exclusion, 100);
+  const theme = await callAPI(base + 'テーマの文章のみ出力（例：○○について）。説明不要。' + exclusion, 100, 'claude-haiku-4-5-20251001');
   usedThemes.push(theme);
   if (usedThemes.length > 10) usedThemes.shift();
   return theme;
@@ -452,7 +465,7 @@ async function decideLetter(theme, keyA, keyB) {
 
   if (pendingLetter && roll < 0.5) {
     const judge = await callAPI(
-      `以下のお便りはラジオトークのテーマ「${theme}」に関連していますか？「yes」か「no」のみ答えてください。\nお便り：「${pendingLetter}」`, 10
+      `以下のお便りはラジオトークのテーマ「${theme}」に関連していますか？「yes」か「no」のみ答えてください。\nお便り：「${pendingLetter}」`, 10, 'claude-haiku-4-5-20251001'
     ).catch(() => 'no');
     if (judge.toLowerCase().includes('yes')) {
       incrementReadCount();
@@ -462,13 +475,13 @@ async function decideLetter(theme, keyA, keyB) {
 
   if (roll < 0.8) {
     const prompt = `ラジオ番組「${show.name}」の常連リスナー「${show.regular.name}」（${show.regular.desc}）が「${theme}」というテーマにお便りを1文で送りました。そのキャラクターらしく、少しクセのある・ツッコミたくなる内容にしてください。お便り文のみ出力。`;
-    const text = await callAPI(prompt, 150).catch(() => null);
+    const text = await callAPI(prompt, 150, 'claude-haiku-4-5-20251001').catch(() => null);
     if (text) return { text, name: show.regular.name };
   }
 
   const fakeName = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
   const text = await callAPI(
-    `ラジオ番組のリスナー「${fakeName}」が「${theme}」というテーマにお便りを1文で送りました。少し極端な意見や偏見、または思わずツッコみたくなる内容にしてください。自然な話し言葉で。お便りの文章のみ出力。`, 150
+    `ラジオ番組のリスナー「${fakeName}」が「${theme}」というテーマにお便りを1文で送りました。少し極端な意見や偏見、または思わずツッコみたくなる内容にしてください。自然な話し言葉で。お便りの文章のみ出力。`, 150, 'claude-haiku-4-5-20251001'
   ).catch(() => 'たのしく聴いています');
   return { text, name: fakeName };
 }
@@ -705,7 +718,7 @@ async function radioLoop() {
     const transcript = [...part1, ...part2].map(l => l.text).join('\n');
     const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null));
     const memPromise = callAPI(
-      `以下はラジオ番組「${cur.show.name}」（テーマ：${curTheme}）の台本です。\n${transcript}\n\nこの放送で話されたエピソードや印象的な話題を2〜3文で要約してください。要約のみ出力。`, 200
+      `以下はラジオ番組「${cur.show.name}」（テーマ：${curTheme}）の台本です。\n${transcript}\n\nこの放送で話されたエピソードや印象的な話題を2〜3文で要約してください。要約のみ出力。`, 200, 'claude-haiku-4-5-20251001'
     ).catch(() => null).then(episode => {
       if (episode) showMemory[memKey] = { theme: curTheme, episode, listenerName: curLetter?.name || null, listenerText: curLetter?.text || null };
     });
