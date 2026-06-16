@@ -110,7 +110,7 @@
   <div class="station-label">📻 on air</div>
   <h1>AI<span>Radio</span></h1>
   <div class="tagline">エンドレスラジオ — 止まるまで流れ続ける</div>
-  <div class="version-tag">v1.6.0 - 2026.06.16</div>
+  <div class="version-tag">v1.6.1 - 2026.06.16</div>
 </div>
 
 <div class="profile-box">
@@ -195,12 +195,12 @@ const SCHEDULE = [
 ];
 
 const SHOWS = {
-  'ab':  { name:'ラジオホリデー', genres:['休日','グルメ','旅行','恋愛','ライフスタイル'], regular:{ name:'布団の中から失礼します', desc:'30代会社員。毎回眠そうなコメントを送ってくる常連。' } },
-  'ac':  { name:'キラキラFM',     genres:['トレンド','スイーツ','ファッション','韓国文化','SNS'], regular:{ name:'地元のギャルより', desc:'ナナに憧れる中学生。トレンドの報告をしてくる常連。' } },
-  'ad':  { name:'朝どれラジオ',   genres:['日常','季節','地元話','人情','食文化'], regular:{ name:'カフェの常連おじさん', desc:'ハルの職場の常連客。毎回注文を報告してくる常連。' } },
-  'bc':  { name:'ギークナイト',   genres:['テクノロジー','ゲーム','学校','将来','サブカル'], regular:{ name:'プログラミング勉強中', desc:'文系大学生。ソラに質問を投げかけてくる常連。' } },
-  'bd':  { name:'男の隠れ家',     genres:['仕事','お金','スポーツ','昭和文化','趣味'], regular:{ name:'競馬場帰りのサラリーマン', desc:'ジョージと馬の話をしたがる常連。' } },
-  'cd':  { name:'世代間ラジオ',   genres:['ジェネレーションギャップ','家族','価値観','流行の変化'], regular:{ name:'ジョージのことが心配なお嫁さん', desc:'ジョージの昭和発言にツッコミを入れてくる常連。' } } }
+  'ab': { name:'ラジオホリデー', genres:['休日','グルメ','旅行','恋愛','ライフスタイル'], regular:{ name:'布団の中から失礼します', desc:'30代会社員。毎回眠そうなコメントを送ってくる常連。' } },
+  'ac': { name:'キラキラFM',     genres:['トレンド','スイーツ','ファッション','韓国文化','SNS'], regular:{ name:'地元のギャルより', desc:'ナナに憧れる中学生。トレンドの報告をしてくる常連。' } },
+  'ad': { name:'朝どれラジオ',   genres:['日常','季節','地元話','人情','食文化'], regular:{ name:'カフェの常連おじさん', desc:'ハルの職場の常連客。毎回注文を報告してくる常連。' } },
+  'bc': { name:'ギークナイト',   genres:['テクノロジー','ゲーム','学校','将来','サブカル'], regular:{ name:'プログラミング勉強中', desc:'文系大学生。ソラに質問を投げかけてくる常連。' } },
+  'bd': { name:'男の隠れ家',     genres:['仕事','お金','スポーツ','昭和文化','趣味'], regular:{ name:'競馬場帰りのサラリーマン', desc:'ジョージと馬の話をしたがる常連。' } },
+  'cd': { name:'世代間ラジオ',   genres:['ジェネレーションギャップ','家族','価値観','流行の変化'], regular:{ name:'ジョージのことが心配なお嫁さん', desc:'ジョージの昭和発言にツッコミを入れてくる常連。' } }
 };
 
 const CM_LIST = [
@@ -230,32 +230,32 @@ const THEME_GENRES = [
 ];
 
 const INITIAL_MEMORIES = {
-  'ab': [ // ラジオホリデー（ハル×ソラ）
+  'ab': [
     { theme:'週末の理想の過ごし方', episode:'ハルが「インスタ映えカフェ巡りを6軒はしご」と言い、ソラが「カフェは2軒が限界では」と冷静に返したが、最終的に二人で行く約束になった微笑ましい回。', listenerName:'布団の中から失礼します', listenerText:'週末は布団から出られません。これが理想です。' },
     { theme:'旅行のこだわりを語る', episode:'ソラの「宿は口コミ4.5以上しか泊まらない」とハルの「インスタで映えるところなら全部OK」の価値観が真っ向対立した回。', listenerName:'布団の中から失礼します', listenerText:'旅行より家でゴロゴロする方が好きです。移動が疲れます。' },
     { theme:'最近ハマっているグルメ', episode:'ハルが「韓国チキン専門店が最高」と言い続け、ソラが「チキンは日本の唐揚げで十分では」と対抗。聴いていた人が全員チキンを食べたくなった回。', listenerName:'布団の中から失礼します', listenerText:'深夜にこれを聴いてお腹が空きました。もう寝ます。' }
   ],
-  'ac': [ // キラキラFM（ハル×ナナ）
+  'ac': [
     { theme:'最近ハマっているスキンケア', episode:'ナナが突然「寝る前に顔にアイスを当てると毛穴が締まる」と言い出してハルが全力で止めた回。リスナーからも心配の声が殺到した。', listenerName:'地元のギャルより', listenerText:'うちのクラスでも流行ってます。でもやったら風邪ひきました。' },
     { theme:'韓国コスメのおすすめを語る', episode:'ハルとナナが30分間ひたすらパックの話をして「これラジオですよね」とナナ自身がつっこんだ伝説の回。', listenerName:'地元のギャルより', listenerText:'韓国行ったとき10枚入りパックを100枚買って帰りました。しか勝たん。' },
     { theme:'TikTokで流行ってるダンスを解説', episode:'ナナが口頭でダンスを説明しようとして完全にカオスになった回。ハルが「ラジオでダンス説明は無理」と白旗を上げた。', listenerName:'地元のギャルより', listenerText:'私も踊ってみたけど親に「何してんの」って言われました。' }
   ],
-  'ad': [ // 朝どれラジオ（ハル×ジョージ）
+  'ad': [
     { theme:'近所の名物おじさん・おばさん', episode:'ジョージが自分の地元の話を40分してハルが全然止められなかった回。「わしの若い頃はな」が17回出た。', listenerName:'カフェの常連おじさん', listenerText:'今日もホットコーヒーをいただきました。ハルさん、砂糖2つでお願いします。' },
     { theme:'朝ごはんにこだわりはあるか', episode:'ジョージの「朝はご飯と味噌汁以外認めない」発言にハルが「え、パンはだめなんですか」と聞いて15分論争になった名エピソード。', listenerName:'カフェの常連おじさん', listenerText:'私も和食派です。ジョージさんと気が合いそうです。' },
     { theme:'季節の変わり目にやること', episode:'ハルが「衣替えが苦手で毎年11月にTシャツを着てる」と告白し、ジョージに「それはアカン」と本気で怒られた回。', listenerName:'カフェの常連おじさん', listenerText:'衣替えのついでに部屋の掃除もしたら一日終わりました。' }
   ],
-  'bc': [ // ギークナイト（ソラ×ナナ）
+  'bc': [
     { theme:'AIと人間の違いとは何か', episode:'ソラが真剣に語り始めたところにナナが「AIってインスタやるんですか」と聞いて議論が崩壊した回。でもなぜか後半は深い話になった。', listenerName:'プログラミング勉強中', listenerText:'AIに課題を手伝ってもらったら先生にバレました。AIも共犯者です。' },
     { theme:'ゲームにハマりすぎた経験', episode:'ナナが「3日間スマホゲームしてたら現実と区別がつかなくなった」と言い、ソラが「それは依存症では」と冷静に指摘した回。', listenerName:'プログラミング勉強中', listenerText:'テスト前日に新作ゲームを買うのをやめられません。助けてください。' },
     { theme:'SNSとの上手な付き合い方', episode:'ソラが「通知をオフにすると生産性が3倍になる」と主張し、ナナが「それはもはや人間じゃない」と反論して聴衆を二分した回。', listenerName:'プログラミング勉強中', listenerText:'SNSをやめようとしたら逆に使う時間が増えました。なぜ。' }
   ],
-  'bd': [ // 男の隠れ家（ソラ×ジョージ）
+  'bd': [
     { theme:'サラリーマンの流儀', episode:'ジョージが「定時で帰ることの何が悪い」と熱弁し、ソラが「現代の働き方改革と完全に一致しています」と援護射撃した珍しく意見が合った回。', listenerName:'競馬場帰りのサラリーマン', listenerText:'今日は3レース的中しました。ジョージさん、馬券の話しましょう。' },
     { theme:'おじさんが若者文化を学ぶ', episode:'ジョージが「タピオカ」を「玉入り紅茶」と言い続け、ソラが訂正するたびにジョージが「一緒やろ」と言い張った回。', listenerName:'競馬場帰りのサラリーマン', listenerText:'私もタピオカを初めて飲みました。おいしかったですが何がいいのか少しわかりません。' },
     { theme:'男の料理事情', episode:'ジョージの「カレーとラーメン以外作れない」発言からソラの「休日は4品作る」まで、男の料理格差が浮き彫りになった回。', listenerName:'競馬場帰りのサラリーマン', listenerText:'私の得意料理はカップラーメンです。お湯を入れるタイミングが肝心です。' }
   ],
-  'cd': [ // 世代間ラジオ（ナナ×ジョージ）
+  'cd': [
     { theme:'スマホの使い方世代ギャップ', episode:'ジョージが「わしはスマホの電話しか使わん」と言い、ナナが「電話って実際にかけるんですか」と返して互いに衝撃を受けた回。', listenerName:'ジョージのことが心配なお嫁さん', listenerText:'ジョージさん、LINEのやり方教えてあげてください。スタンプを送ってきたことがないんです。' },
     { theme:'流行語について語る', episode:'ジョージが昭和の流行語を連発し、ナナが一つも知らなくて、逆にナナのギャル語をジョージが全力でメモしていた微笑ましい回。', listenerName:'ジョージのことが心配なお嫁さん', listenerText:'家でジョージさんが急に「それな」と言い出して驚きました。' },
     { theme:'若者とおじさんの価値観の違い', episode:'「飲み会は義務か任意か」論争で30分使い、最終的にジョージが「まあ時代が変わったんやな」と折れた感動の回。', listenerName:'ジョージのことが心配なお嫁さん', listenerText:'ジョージさんが最近残業せず帰ってくるようになりました。この番組のおかげですかね。' }
@@ -426,7 +426,6 @@ function nextSchedule() {
   return { ...s, show: SHOWS[s.key] };
 }
 
-
 async function fetchTheme(show) {
   const exclusion = usedThemes.length > 0
     ? '\n\n【使用済みなので絶対に除外】\n' + usedThemes.map((t, i) => `${i+1}. ${t}`).join('\n') : '';
@@ -451,7 +450,6 @@ async function decideLetter(theme, keyA, keyB) {
   const show = SHOWS[key];
   const roll = Math.random();
 
-  // 50%: 自分のお便り
   if (pendingLetter && roll < 0.5) {
     const judge = await callAPI(
       `以下のお便りはラジオトークのテーマ「${theme}」に関連していますか？「yes」か「no」のみ答えてください。\nお便り：「${pendingLetter}」`, 10
@@ -462,14 +460,12 @@ async function decideLetter(theme, keyA, keyB) {
     }
   }
 
-  // 30%: 常連リスナー
   if (roll < 0.8) {
     const prompt = `ラジオ番組「${show.name}」の常連リスナー「${show.regular.name}」（${show.regular.desc}）が「${theme}」というテーマにお便りを1文で送りました。そのキャラクターらしく、少しクセのある・ツッコミたくなる内容にしてください。お便り文のみ出力。`;
     const text = await callAPI(prompt, 150).catch(() => null);
     if (text) return { text, name: show.regular.name };
   }
 
-  // 20%: 架空リスナー
   const fakeName = FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
   const text = await callAPI(
     `ラジオ番組のリスナー「${fakeName}」が「${theme}」というテーマにお便りを1文で送りました。少し極端な意見や偏見、または思わずツッコみたくなる内容にしてください。自然な話し言葉で。お便りの文章のみ出力。`, 150
@@ -651,7 +647,6 @@ async function radioLoop() {
   document.getElementById('currentTheme').textContent = 'まもなく放送開始...';
   showLoading(true);
 
-  // 起動時：最初の番組と次の番組のテーマを並行生成
   let cur = nextSchedule();
   let next = nextSchedule();
   let curTheme = '';
@@ -669,17 +664,13 @@ async function radioLoop() {
   let part1 = await initPromise;
   showLoading(false);
 
-  // 起動時からお便り募集開始（次番組テーマで）
   showLetterBox(nextTheme);
   pendingLetter = null;
 
   while (isRunning) {
-    // --- パート1 ---
     setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
-    // パート1読み上げ中にお便り取得＋パート2生成
-    // お便りは「今の番組」のテーマに対して集めたもの（curTheme）
     let curLetter = null;
     const part2Promise = (async () => {
       curLetter = await decideLetter(curTheme, cur.keyA, cur.keyB);
@@ -689,16 +680,13 @@ async function radioLoop() {
     await speakLines(part1);
     if (!isRunning) return;
 
-    // CM1
     await playCM(cur.keyA, cur.keyB);
     if (!isRunning) return;
     const part2 = await safeFetch(() => part2Promise);
 
-    // --- パート2 ---
     setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
-    // パート2読み上げ中にパート3を生成（パート2全文を渡す）
     const nextShowInfo = `${next.show.name}（${DJS[next.keyA].name}と${DJS[next.keyB].name}）テーマ：${nextTheme}`;
     const p2text = part2.map(l => l.text).join('\n');
     const part3Promise = safeFetch(() => fetchPart(3, cur.show, cur.keyA, cur.keyB, curTheme, null, nextShowInfo, p2text));
@@ -706,16 +694,13 @@ async function radioLoop() {
     await speakLines(part2);
     if (!isRunning) return;
 
-    // CM2
     await playCM(cur.keyA, cur.keyB);
     if (!isRunning) return;
     const part3 = await part3Promise;
 
-    // --- パート3 ---
     setMode('talk', { keyA: cur.keyA, keyB: cur.keyB, show: cur.show, theme: curTheme });
     startBGM();
 
-    // パート3読み上げ中に次番組パート1とshowMemoryを並行生成
     const memKey = [cur.keyA, cur.keyB].sort().join('');
     const transcript = [...part1, ...part2].map(l => l.text).join('\n');
     const nextPart1Promise = safeFetch(() => fetchPart(1, next.show, next.keyA, next.keyB, nextTheme, null, null));
@@ -729,22 +714,17 @@ async function radioLoop() {
     if (!isRunning) return;
     await memPromise;
 
-    // CM3（お便り締め切り・次々番組テーマ生成）
     await playCM(cur.keyA, cur.keyB);
     if (!isRunning) return;
 
-    // 次番組パート1を待つ
     const nextPart1 = await nextPart1Promise;
 
-    // お便りを閉じて次番組テーマに切り替え
     hideLetterBox();
 
-    // 次番組へ切り替え
     cur = next;
     curTheme = nextTheme;
     part1 = nextPart1;
 
-    // 次の次番組を決定してお便り募集開始
     next = nextSchedule();
     nextTheme = await fetchTheme(next.show).catch(() => fetchTheme(null));
     showLetterBox(nextTheme);
@@ -766,7 +746,6 @@ async function startRadio() {
   saveProfile();
   updateProfileUI();
 
-  // 起動時にINITIAL_MEMORIESからランダムに選んでshowMemoryを初期化
   Object.keys(INITIAL_MEMORIES).forEach(key => {
     const patterns = INITIAL_MEMORIES[key];
     showMemory[key] = patterns[Math.floor(Math.random() * patterns.length)];
